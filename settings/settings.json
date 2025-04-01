@@ -1,0 +1,7 @@
+{
+  "bank": "PRIVATBANK",
+  "currency1": "USD",
+  "currency2": "EUR",
+  "decimalPlaces": 2,
+  "notificationTime": 12
+}
