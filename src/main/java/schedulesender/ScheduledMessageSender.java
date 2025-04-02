@@ -1,4 +1,4 @@
-package org.telegrambot.schedulesender;
+package schedulesender;
 
 import java.time.LocalTime;
 

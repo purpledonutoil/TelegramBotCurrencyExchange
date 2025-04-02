@@ -1,4 +1,4 @@
-package org.telegrambot.executor;
+package executor;
 
 import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.HashMap;
