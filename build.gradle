@@ -1,0 +1,29 @@
+plugins {
+    id 'application'
+}
+
+application {
+    mainClass = 'org.telegrambot.executor.TelegramBot' // Replace with your actual package name
+}
+
+
+compileJava {options.encoding = "UTF-8"}
+
+group = 'org.telegrambot'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation group: 'org.telegram', name: 'telegrambots', version: '6.9.7.1'
+    implementation 'ch.qos.logback:logback-classic:1.4.14'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.12.1'
+}
+
+test {
+    useJUnitPlatform()
+}
