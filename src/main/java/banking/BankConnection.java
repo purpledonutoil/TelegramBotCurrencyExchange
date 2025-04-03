@@ -1,9 +1,7 @@
 package banking;
 
-import com.google.gson.JsonObject;
+import java.util.List;
 
 public interface BankConnection {
-    JsonObject getAPI(String currencyNameA, String currencyNameB);
-    float getRateBuy(String currencyA, String currencyB);
-    float getRateSell(String currencyA, String currencyB);
+    List<CurrencyRate> getRates(List<String> currencies);
 }
