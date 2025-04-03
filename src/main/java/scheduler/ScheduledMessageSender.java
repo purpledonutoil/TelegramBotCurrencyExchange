@@ -1,4 +1,4 @@
-package schedulesender;
+package scheduler;
 
 import java.time.LocalTime;
 
