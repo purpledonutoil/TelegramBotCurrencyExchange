@@ -46,7 +46,6 @@ public class TelegramBotContent {
 
         BUTTONS5.put("USD", "currency_btn1");
         BUTTONS5.put("EUR", "currency_btn2");
-        BUTTONS5.put("UAH", "currency_btn3");
 
         BUTTONS6.put("9", "notification_btn1");
         BUTTONS6.put("10", "notification_btn2");
