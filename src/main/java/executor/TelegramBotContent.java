@@ -11,23 +11,24 @@ public class TelegramBotContent {
     protected static final Map<String, String> BUTTONS1 = Map.of(
             "Отримати інфо", "info_btn",
             "Налаштування", "settings_btn");
-    protected static final String MESSAGE2 = "Налаштування";
+    protected static final String MESSAGE2 = "Налаштування:";
     protected static final Map<String, String> BUTTONS2 = new LinkedHashMap<>();
 
-    protected static final String MESSAGE3 = "Оберіть кількість знаків після коми";
+    protected static final String MESSAGE3 = "Оберіть кількість знаків після коми:";
     protected static final Map<String, String> BUTTONS3 = new LinkedHashMap<>();
-    protected static final String MESSAGE4 = "Оберіть один або декілька банків";
+    protected static final String MESSAGE4 = "Оберіть один або декілька банків:";
     protected static final Map<String, String> BUTTONS4 = new LinkedHashMap<>();
-    protected static final String MESSAGE5 = "Оберіть одну або декілька валют";
+    protected static final String MESSAGE5 = "Оберіть одну або декілька валют:";
     protected static final Map<String, String> BUTTONS5 = new LinkedHashMap<>();
 
-    protected static final String MESSAGE6 = "Оберіть час сповіщення";
+    protected static final String MESSAGE6 = "Оберіть час сповіщення:";
 
     protected static final Map<String, String> BUTTONS6 = new LinkedHashMap<>();
 
-    protected static final String MESSAGE7 = "Курс в (БАНК): (ВАЛЮТА1/ВАЛЮТА2)\n" +
-            "Покупка: ...\n" +
-            "Продаж: ...";
+    protected static final String MESSAGE7 = """
+            Курс в (БАНК): (ВАЛЮТА1/ВАЛЮТА2)
+            Покупка: ...
+            Продаж: ...""";
 
     static {
         BUTTONS2.put("Кількість знаків після коми", "decimalpoint_btn");

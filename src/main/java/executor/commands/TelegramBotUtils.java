@@ -4,7 +4,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import java.util.ArrayList;
@@ -32,7 +31,6 @@ public class TelegramBotUtils {
 
     public static SendMessage createMessage(Long chatId, String text, Map<String, String> buttons) {
         SendMessage message = createMessage(chatId, text);
-        removeKeyboard(message);
         if (buttons != null && !buttons.isEmpty()) {
             if (buttons.size()<6){
                 attachButtons(message, buttons);
@@ -77,15 +75,5 @@ public class TelegramBotUtils {
 
         keyboardMarkup.setKeyboard(keyboard);
         message.setReplyMarkup(keyboardMarkup);
-    }
-
-    private static void removeKeyboard(SendMessage message) {
-        if (message.getReplyMarkup() instanceof ReplyKeyboardMarkup) {
-            ReplyKeyboardRemove keyboardRemove = new ReplyKeyboardRemove();
-            keyboardRemove.setRemoveKeyboard(true);
-            message.setReplyMarkup(keyboardRemove);
-
-            message.setText("");
-        }
     }
 }
