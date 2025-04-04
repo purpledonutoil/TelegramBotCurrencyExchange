@@ -1,8 +1,18 @@
 package storage;
 
+import banking.Bank;
+import banking.Currency;
+
+import java.util.List;
+
 public class UserSettings {
-//    private banks;
-//    private currencies;
-//    private time;
-//    private roundNumber;
+    public static final Bank DEFAULT_BANK = Bank.PRIVAT;
+    public static final Currency DEFAULT_CURRENCY = Currency.USD;
+    public static final int DEFAULT_NOTICE_TIME = -1;
+    public static final int DEFAULT_ROUND_NUMBER = 2;
+
+    private List<Bank> banks;
+    private List<Currency> currencies;
+    private int noticeTime;
+    private int roundNumber;
 }
