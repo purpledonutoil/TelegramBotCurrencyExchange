@@ -3,7 +3,7 @@ package storage;
 import banking.Bank;
 import banking.Currency;
 
-import java.util.List;
+import java.util.EnumSet;
 
 public class UserSettings {
     public static final Bank DEFAULT_BANK = Bank.PRIVAT;
@@ -11,8 +11,8 @@ public class UserSettings {
     public static final int DEFAULT_NOTICE_TIME = -1;
     public static final int DEFAULT_ROUND_NUMBER = 2;
 
-    private List<Bank> banks;
-    private List<Currency> currencies;
+    private EnumSet<Bank> banks;
+    private EnumSet<Currency> currencies;
     private int noticeTime;
     private int roundNumber;
 }
