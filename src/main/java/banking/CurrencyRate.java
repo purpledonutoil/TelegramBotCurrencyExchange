@@ -1,7 +1,12 @@
 package banking;
 
 public class CurrencyRate {
-    private Currency Currency;
+    private Currency currency;
+    private Currency baseCurrency;
     private float buyRate;
     private float saleRate;
+
+    CurrencyRate(){
+        this.baseCurrency = Currency.UAH;
+    }
 }
