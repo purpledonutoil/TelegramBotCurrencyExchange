@@ -2,53 +2,77 @@ package banking;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import executor.TelegramService;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class NBUConnection implements BankConnection {
+
     private static final String API_URL = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json";
-    private final HttpClient httpClient;
-    private final ObjectMapper objectMapper;
-
-    private static final Map<String, Currency> currencyMap = Map.of(
-            "USD", Currency.USD,
-            "EUR", Currency.EUR,
-            "UAH", Currency.UAH
-    );
-
-    public NBUConnection() {
-        this.httpClient = HttpClient.newHttpClient();
-        this.objectMapper = new ObjectMapper();
-    }
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public List<CurrencyRate> getRates(List<String> currencies) {
-        List<CurrencyRate> ratesList = new ArrayList<>();
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(API_URL))
-                    .GET()
-                    .build();
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            JsonNode ratesArray = objectMapper.readTree(response.body());
+    public List<CurrencyRate> getRates(EnumSet<Currency> currencies) {
+        List<CurrencyRate> rates = new ArrayList<>();
 
-            for (JsonNode rateNode : ratesArray) {
-                String currencyCode = rateNode.get("cc").asText();
-                float rate = (float) rateNode.get("rate").asDouble();
+        int retries = 2;
+        while (retries > 0) {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(API_URL))
+                        .GET()
+                        .build();
 
-                if (currencyMap.containsKey(currencyCode) && currencies.contains(currencyMap.get(currencyCode))) {
-                    ratesList.add(new CurrencyRate(currencyMap.get(currencyCode), rate, rate));
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() != 200) {
+                    return null;
+                }
+
+                JsonNode root = objectMapper.readTree(response.body());
+
+                for (JsonNode rateNode : root) {
+                    String currencyCode = rateNode.get("cc").asText();
+
+                    try {
+                        Currency currency = Currency.valueOf(currencyCode);
+
+                        if (currencies.contains(currency)) {
+                            float rate = (float) rateNode.get("rate").asDouble();
+
+                            rates.add(new CurrencyRate(currency, Currency.UAH, rate, rate));
+                        } else {
+                            rates.add(new CurrencyRate(currency, Currency.UAH, -1, -1));
+                        }
+
+                    } catch (IllegalArgumentException ignored) {
+
+                    }
+                }
+                break;
+            } catch (IOException | InterruptedException e) {
+                retries--;
+                if (retries > 0) {
+                    try {
+                        TimeUnit.SECONDS.sleep(2);
+                    } catch (InterruptedException interruptedException) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return ratesList;
+
+        if (retries == 0) {
+            return null;
+        }
+
+        return rates;
     }
 }

@@ -1,8 +1,9 @@
 package storage;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class Storage {
-    // chatId, Settings
-    private Map<Long, UserSettings> data;
+    //               chatId, Settings
+    private final Map<Long, UserSettings> data = new HashMap<>();
 }

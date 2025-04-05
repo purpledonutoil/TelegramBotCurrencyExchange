@@ -2,46 +2,77 @@ package banking;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class PrivatBankConnection implements BankConnection {
-    private static final String API_URL = "https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=5";
-    private final HttpClient httpClient;
-    private final ObjectMapper objectMapper;
 
-    public PrivatBankConnection() {
-        this.httpClient = HttpClient.newHttpClient();
-        this.objectMapper = new ObjectMapper();
-    }
+    private static final String API_URL = "https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5";
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Override
-    public List<CurrencyRate> getRates(List<String> currencies) {
-        List<CurrencyRate> ratesList = new ArrayList<>();
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(API_URL))
-                    .GET()
-                    .build();
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            JsonNode ratesArray = objectMapper.readTree(response.body());
+    public List<CurrencyRate> getRates(EnumSet<Currency> currencies) {
+        List<CurrencyRate> result = new ArrayList<>();
 
-            for (JsonNode rate : ratesArray) {
-                String currencyA = rate.get("ccy").asText();
+        int retries = 2;
+        while (retries > 0) {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(API_URL))
+                        .GET()
+                        .build();
 
-                if (currencies.contains(Currency.valueOf(currencyA))) {
-                    float buyRate = Float.parseFloat(rate.get("buy").asText());
-                    float saleRate = Float.parseFloat(rate.get("sale").asText());
-                    ratesList.add(new CurrencyRate(Currency.valueOf(currencyA), buyRate, saleRate));
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() != 200) {
+                    return null;
+                }
+
+                JsonNode root = mapper.readTree(response.body());
+
+                for (JsonNode rateNode : root) {
+                    String currencyA = rateNode.get("ccy").asText();
+                    String currencyB = rateNode.get("base_ccy").asText();
+
+                    try {
+                        Currency currency = Currency.valueOf(currencyA);
+                        Currency baseCurrency = Currency.valueOf(currencyB);
+
+                        if (currencies.contains(currency)) {
+                            float buy = rateNode.has("buy") ? (float) rateNode.get("buy").asDouble() : -1;
+                            float sell = rateNode.has("sale") ? (float) rateNode.get("sale").asDouble() : -1;
+
+                            CurrencyRate currencyRate = new CurrencyRate(currency, baseCurrency, buy, sell);
+                            result.add(currencyRate);
+                        }
+                    } catch (IllegalArgumentException e) {
+
+                    }
+                }
+                break;
+            } catch (IOException | InterruptedException e) {
+                retries--;
+                if (retries > 0) {
+                    try {
+                        TimeUnit.SECONDS.sleep(2);
+                    } catch (InterruptedException interruptedException) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return ratesList;
+
+        if (retries == 0) {
+            return null;
+        }
+
+        return result;
     }
 }
