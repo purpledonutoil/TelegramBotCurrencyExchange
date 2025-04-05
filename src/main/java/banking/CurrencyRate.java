@@ -27,9 +27,4 @@ public class CurrencyRate {
         this.saleRate = saleRate;
     }
 
-
-    @Override
-    public String toString() {
-        return currency + "/" + baseCurrency + " → Buy: " + buyRate + ", Sell: " + saleRate;
-    }
 }

@@ -1,8 +1,10 @@
+
 import executor.TelegramService;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+
 
 public class AppTelegramBot{
 
@@ -12,5 +14,6 @@ public class AppTelegramBot{
         String botName = dotenv.get("BOT_NAME");
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
         telegramBotsApi.registerBot(new TelegramService(botToken, botName));
+
     }
 }

@@ -15,4 +15,12 @@ public class UserSettings {
     private EnumSet<Currency> currencies;
     private int noticeTime;
     private int roundNumber;
+    public EnumSet<Bank> getBanks() {
+        return banks;
+    }
+
+    public EnumSet<Currency> getCurrencies() {
+        return currencies;
+    }
+
 }
