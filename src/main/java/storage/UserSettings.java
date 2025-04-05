@@ -9,18 +9,18 @@ public class UserSettings {
     public static final Bank DEFAULT_BANK = Bank.PRIVAT;
     public static final Currency DEFAULT_CURRENCY = Currency.USD;
     public static final int DEFAULT_NOTICE_TIME = -1;
-    public static final int DEFAULT_ROUND_NUMBER = 2;
+    public static final int DEFAULT_DECIMAL_PLACE = 2;
 
     private EnumSet<Bank> banks;
     private EnumSet<Currency> currencies;
-    private int noticeTime;
-    private int roundNumber;
+    private int  notificationTime;
+    private int decimalPlace;
 
     public UserSettings() {
         this.banks = EnumSet.of(DEFAULT_BANK);
         this.currencies = EnumSet.of(DEFAULT_CURRENCY);
-        this.noticeTime = DEFAULT_NOTICE_TIME;
-        this.roundNumber = DEFAULT_ROUND_NUMBER;
+        this. notificationTime = DEFAULT_NOTICE_TIME;
+        this.decimalPlace = DEFAULT_DECIMAL_PLACE;
     }
 
     public EnumSet<Bank> getBanks() {
@@ -31,44 +31,48 @@ public class UserSettings {
         return EnumSet.copyOf(currencies);
     }
 
-    public int getNoticeTime() {
-        return noticeTime;
+    public int getNotificationTime() {
+        return  notificationTime;
     }
 
     public int getRoundNumber() {
-        return roundNumber;
+        return decimalPlace;
     }
 
 
-    public int setNoticeTime(int noticeTime) {
-        this.noticeTime = noticeTime;
-        return this.noticeTime;
+    public int setNotificationTime(int  notificationTime) {
+        this. notificationTime =  notificationTime;
+        return this. notificationTime;
     }
 
     public int setRoundNumber(int roundNumber) {
-        this.roundNumber = roundNumber;
-        return this.roundNumber;
+        this.decimalPlace = roundNumber;
+        return this.decimalPlace;
     }
 
     public void addCurrency(Currency currency) {
         currencies.add(Objects.requireNonNull(currency));
     }
 
-    public void removeCurrency(Currency currency) {
+    public Currency removeCurrency(Currency currency) {
         currencies.remove(currency);
         if (currencies.isEmpty()) {
             currencies.add(DEFAULT_CURRENCY);
+            return DEFAULT_CURRENCY;
         }
+        return null;
     }
 
     public void addBank(Bank bank) {
         banks.add(Objects.requireNonNull(bank));
     }
 
-    public void removeBank(Bank bank) {
+    public Bank removeBank(Bank bank) {
         banks.remove(bank);
         if (banks.isEmpty()) {
             banks.add(DEFAULT_BANK);
+            return DEFAULT_BANK;
         }
+        return null ;
     }
 }
