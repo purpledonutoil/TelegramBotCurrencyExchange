@@ -49,7 +49,7 @@ public class PrivatBankConnection implements BankConnection {
                             float buy = rateNode.has("buy") ? (float) rateNode.get("buy").asDouble() : -1;
                             float sell = rateNode.has("sale") ? (float) rateNode.get("sale").asDouble() : -1;
 
-                            CurrencyRate currencyRate = new CurrencyRate(currency, baseCurrency, buy, sell);
+                            CurrencyRate currencyRate = new CurrencyRate(currency, buy, sell);
                             result.add(currencyRate);
                         }
                     } catch (IllegalArgumentException e) {

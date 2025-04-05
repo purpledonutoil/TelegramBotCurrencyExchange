@@ -56,7 +56,7 @@ public class MonoBankConnection implements BankConnection {
                         float buy = rateNode.has("rateBuy") ? (float) rateNode.get("rateBuy").asDouble() : -1;
                         float sell = rateNode.has("rateSell") ? (float) rateNode.get("rateSell").asDouble() : -1;
 
-                        rates.add(new CurrencyRate(currency, baseCurrency, buy, sell));
+                        rates.add(new CurrencyRate(currency, buy, sell));
                     }
                 }
                 break;

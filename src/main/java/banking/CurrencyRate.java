@@ -5,11 +5,9 @@ public class CurrencyRate {
     private Currency baseCurrency;
     private float buyRate;
     private float saleRate;
-
-<<<<<<< HEAD
-    CurrencyRate(Currency currency, Currency baseCurrency, float buyRate, float saleRate) {
+    CurrencyRate(Currency currency, float buyRate, float saleRate) {
         this.currency = currency;
-        this.baseCurrency = baseCurrency;
+        this.baseCurrency = Currency.UAH;
         this.buyRate = buyRate;
         this.saleRate = saleRate;
     }
@@ -34,10 +32,4 @@ public class CurrencyRate {
     public String toString() {
         return currency + "/" + baseCurrency + " → Buy: " + buyRate + ", Sell: " + saleRate;
     }
-
-=======
-    CurrencyRate(){
-        this.baseCurrency = Currency.UAH;
-    }
->>>>>>> main
 }
