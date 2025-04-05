@@ -48,10 +48,7 @@ public class NBUConnection implements BankConnection {
                             float rate = (float) rateNode.get("rate").asDouble();
 
                             rates.add(new CurrencyRate(currency, rate, rate));
-                        } else {
-                            rates.add(new CurrencyRate(currency, -1, -1));
                         }
-
                     } catch (IllegalArgumentException ignored) {
 
                     }
