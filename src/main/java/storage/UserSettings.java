@@ -15,4 +15,7 @@ public class UserSettings {
     private EnumSet<Currency> currencies;
     private int noticeTime;
     private int roundNumber;
+    public void setNotificationTime(int hour) {
+        throw new UnsupportedOperationException("Unimplemented method 'setNotificationTime'");
+    }
 }
