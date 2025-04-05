@@ -39,11 +39,9 @@ public class PrivatBankConnection implements BankConnection {
 
                 for (JsonNode rateNode : root) {
                     String currencyA = rateNode.get("ccy").asText();
-                    String currencyB = rateNode.get("base_ccy").asText();
 
                     try {
                         Currency currency = Currency.valueOf(currencyA);
-                        Currency baseCurrency = Currency.valueOf(currencyB);
 
                         if (currencies.contains(currency)) {
                             float buy = rateNode.has("buy") ? (float) rateNode.get("buy").asDouble() : -1;

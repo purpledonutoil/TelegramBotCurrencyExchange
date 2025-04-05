@@ -50,7 +50,6 @@ public class MonoBankConnection implements BankConnection {
                     if (codeB != 980) continue;
 
                     Currency currency = codeToCurrency.get(codeA);
-                    Currency baseCurrency = codeToCurrency.get(codeB);
 
                     if (currency != null && currencies.contains(currency)) {
                         float buy = rateNode.has("rateBuy") ? (float) rateNode.get("rateBuy").asDouble() : -1;
