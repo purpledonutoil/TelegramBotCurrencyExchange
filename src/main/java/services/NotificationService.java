@@ -29,7 +29,7 @@ public class NotificationService {
     private SendMessage createNotificationMessage(Long chatId, int currentHour) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        message.setText("⏰ Обери час, коли хочеш отримувати щоденні сповіщення:");
+        message.setText("⏰ Обери час, коли хочеш отримувати щоденні повідомлення:");
 
         ReplyKeyboardMarkup keyboardMarkup = createKeyboardMarkup(currentHour);
         message.setReplyMarkup(keyboardMarkup);
@@ -57,7 +57,7 @@ public class NotificationService {
         }
 
         KeyboardRow offRow = new KeyboardRow();
-        String offButtonText = (currentHour == -1) ? "🔕 Сповіщення вимкнено" : "🔕 Вимкнути сповіщення";
+        String offButtonText = (currentHour == -1) ? "🔕 Повідомлення вимкнено" : "🔕 Вимкнути повідомлення";
         offRow.add(offButtonText);
         rows.add(offRow);
 
