@@ -4,21 +4,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Storage {
-    private static final Storage instance = new Storage();
-    
+
+    private static final Storage INSTANCE = new Storage();
+
     private final Map<Long, UserSettings> data = new HashMap<>();
 
-    private Storage() {}
+    private Storage() {
+    }
 
     public static Storage getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
-    public UserSettings getUserSettings(Long chatId) {
-        return data.getOrDefault(chatId, new UserSettings());
-    }
-
-    public void saveUserSettings(Long chatId, UserSettings settings) {
+    public void saveUserSettings(long chatId, UserSettings settings) {
+        if (settings == null) return;
         data.put(chatId, settings);
+    }
+
+    public UserSettings getUserSettings(long chatId) {
+        return data.computeIfAbsent(chatId, k -> new UserSettings());
     }
 }
