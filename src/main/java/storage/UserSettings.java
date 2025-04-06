@@ -13,7 +13,7 @@ public class UserSettings {
 
     private EnumSet<Bank> banks;
     private EnumSet<Currency> currencies;
-    private int  notificationTime;
+    private int notificationTime;
     private int decimalPlace;
 
     public UserSettings() {
@@ -32,7 +32,7 @@ public class UserSettings {
     }
 
     public int getNotificationTime() {
-        return  notificationTime;
+        return notificationTime;
     }
 
     public int getRoundNumber() {
@@ -40,8 +40,8 @@ public class UserSettings {
     }
 
 
-    public int setNotificationTime(int  notificationTime) {
-        this. notificationTime =  notificationTime;
+    public int setNotificationTime(int notificationTime) {
+        this.notificationTime = notificationTime;
         return this. notificationTime;
     }
 
