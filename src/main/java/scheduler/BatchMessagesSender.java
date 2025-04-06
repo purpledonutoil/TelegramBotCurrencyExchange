@@ -1,12 +1,5 @@
 package scheduler;
 
-import banking.Bank;
-import banking.BankService;
-import banking.CurrencyRate;
-import storage.UserSettings;
-import utils.InfoMessage;
-
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -16,14 +9,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
+import banking.Bank;
+import banking.BankService;
+import banking.CurrencyRate;
+import storage.UserSettings;
+import utils.InfoMessage;
+
 public class BatchMessagesSender {
     private static final int MAX_RETRY_COUNT = 1;
     private static final int RETRY_DELAY_MINUTES = 5;
     private static final int CHECK_COMPLETION_INTERVAL_MINUTES = 1;
-    private final ScheduledExecutorService scheduler;
-    private final BiFunction<Long, String, Integer> notificationAction;
+
     private final AtomicInteger pendingTasksCount = new AtomicInteger(0);
     private final AtomicBoolean shutdownInitiated = new AtomicBoolean(false);
+    private final BiFunction<Long, String, Integer> notificationAction;
+    private final ScheduledExecutorService scheduler;
 
     public BatchMessagesSender(BiFunction<Long, String, Integer> notificationAction) {
         this(notificationAction, Runtime.getRuntime().availableProcessors());
@@ -49,35 +49,43 @@ public class BatchMessagesSender {
     }
 
     private void sendMessageWithRetry(Long chatId, String textMessage, int retryCount) {
-        try {
-            int sendingResult = notificationAction.apply(chatId, textMessage);
+        // if shutdown initiated then don't do anything
+        if (!shutdownInitiated.get()) {
+            return;
+        }
 
-            if (sendingResult == 0 && !shutdownInitiated.get()) {
-                throw new IOException("Failed sending");
-            }
+        int sendingResult = notificationAction.apply(chatId, textMessage);
 
+        // success case
+        if (sendingResult != 0) {
             pendingTasksCount.decrementAndGet();
+            return;
+        }
 
-        } catch (IOException e) {
-
-            int nextRetryCount = retryCount + 1;
-            if (nextRetryCount <= MAX_RETRY_COUNT) {
-                scheduler.schedule(() -> sendMessageWithRetry(chatId, textMessage, nextRetryCount),
-                        RETRY_DELAY_MINUTES,
-                        TimeUnit.MINUTES);
-            } else {
-                pendingTasksCount.decrementAndGet(); // Зменшуємо лічильник завдань
-            }
-
+        int nextRetryCount = retryCount + 1;
+        if (nextRetryCount <= MAX_RETRY_COUNT) {
+            scheduler.schedule(
+                    () -> sendMessageWithRetry(chatId, textMessage, nextRetryCount),
+                    RETRY_DELAY_MINUTES,
+                    TimeUnit.MINUTES
+            );
+        } else {
+            // If we use all retry then cancelling task
+            pendingTasksCount.decrementAndGet();
         }
     }
 
     private void startCompletionChecker() {
-        scheduler.scheduleAtFixedRate(() -> {
-            if (pendingTasksCount.get() == 0 && !shutdownInitiated.get()) {
-                shutdown();
-            }
-        }, CHECK_COMPLETION_INTERVAL_MINUTES, CHECK_COMPLETION_INTERVAL_MINUTES, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(
+                () -> {
+                    if (pendingTasksCount.get() == 0 && !shutdownInitiated.get()) {
+                        shutdown();
+                    }
+                },
+                CHECK_COMPLETION_INTERVAL_MINUTES,
+                CHECK_COMPLETION_INTERVAL_MINUTES,
+                TimeUnit.MINUTES
+        );
     }
 
     public void shutdown() {
