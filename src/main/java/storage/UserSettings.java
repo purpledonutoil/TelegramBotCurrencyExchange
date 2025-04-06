@@ -13,14 +13,9 @@ public class UserSettings {
 
     private EnumSet<Bank> banks;
     private EnumSet<Currency> currencies;
-    private int noticeTime = DEFAULT_NOTICE_TIME;
-    private int roundNumber = DEFAULT_ROUND_NUMBER;
-
-    public int getNoticeTime() {
-        return noticeTime;
-    }
-
+    private int noticeTime;
+    private int roundNumber;
     public void setNotificationTime(int hour) {
-        this.noticeTime = hour;
+        throw new UnsupportedOperationException("Unimplemented method 'setNotificationTime'");
     }
 }
