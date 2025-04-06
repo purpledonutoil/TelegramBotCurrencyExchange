@@ -8,6 +8,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,23 +35,28 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
         if (update.hasMessage()) {
             String messageText = update.getMessage().getText();
-
+    
             if (messageText.equals("/start")) {
                 this.sendMessage(chatID, MESSAGE1, BUTTONS1);
             }
-
-            if (messageReader.get(chatID) == true) {
+    
+            if (messageReader.get(chatID) == Boolean.TRUE) {
                 if (messageText.matches("^(1[0-8]|[9])$")) {
                     int selectedHour = Integer.parseInt(messageText);
+    
                     UserSettings settings = Storage.getInstance().getUserSettings(chatID);
                     settings.setNotificationTime(selectedHour);
                     Storage.getInstance().saveUserSettings(chatID, settings);
-                    this.sendMessage(chatID, "Тепер ваше повідомлення буде приходити о " + selectedHour + ":00", BUTTONS1);
+    
+                    int messageId = this.sendMessage(chatID, "Тепер ваше повідомлення буде приходити о " + selectedHour + ":00", BUTTONS1);
+                    deleteMessage(chatID, Map.of(chatID, messageId));
                 } else if (messageText.equalsIgnoreCase("Вимкнути повідомлення")) {
                     UserSettings settings = Storage.getInstance().getUserSettings(chatID);
                     settings.setNotificationTime(-1);
                     Storage.getInstance().saveUserSettings(chatID, settings);
-                    this.sendMessage(chatID, "Повідомлення вимкнено.", BUTTONS1);
+    
+                    int messageId = this.sendMessage(chatID, "Повідомлення вимкнено.", BUTTONS1);
+                    deleteMessage(chatID, Map.of(chatID, messageId));
                 }
             }
         }
@@ -101,8 +107,19 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
         return 0;
     }
 
-    @Override
-    public void deleteMessage(Long chatID, Map<Long, Integer> lastMessageIds) {
-        //not released yet
+@Override
+public void deleteMessage(Long chatID, Map<Long, Integer> lastMessageIds) {
+    Integer messageId = lastMessageIds.get(chatID);
+    if (messageId != null) {
+        DeleteMessage deleteMessage = new DeleteMessage();
+        deleteMessage.setChatId(chatID.toString());
+        deleteMessage.setMessageId(messageId);
+        try {
+            execute(deleteMessage);
+        } catch (TelegramApiException e) {
+            System.err.println("Error deleting message: " + e.getMessage());
+        }
     }
+}
+
 }
