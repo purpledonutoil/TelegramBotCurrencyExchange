@@ -8,7 +8,7 @@ import java.util.Objects;
 public class UserSettings {
     public static final Bank DEFAULT_BANK = Bank.PRIVAT;
     public static final Currency DEFAULT_CURRENCY = Currency.USD;
-    public static final int DEFAULT_NOTIFICATION_TIME = -1;
+    public static final int DEFAULT_NOTIFICATION_TIME = 9;
     public static final int DEFAULT_DECIMAL_PLACE = 2;
 
     private EnumSet<Bank> banks;
