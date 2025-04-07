@@ -50,7 +50,7 @@ public class BatchMessagesSender {
 
     private void sendMessageWithRetry(Long chatId, String textMessage, int retryCount) {
         // if shutdown initiated then don't do anything
-        if (!shutdownInitiated.get()) {
+        if (shutdownInitiated.get()) {
             return;
         }
 
