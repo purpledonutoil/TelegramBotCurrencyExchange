@@ -1,11 +1,18 @@
 package executor;
 
+import banking.Bank;
+import banking.BankService;
+import banking.CurrencyRate;
 import executor.commands.TelegramBotUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import storage.Storage;
+import storage.UserSettings;
+import utils.InfoMessage;
 
+import java.util.List;
 import java.util.Map;
 
 import static executor.TelegramBotContent.*;
@@ -27,6 +34,9 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
     public void onUpdateReceived(Update update) {
         Long chatID = TelegramBotUtils.getChatId(update);
         if (update.hasMessage() && update.getMessage().getText().equals("/start")) {
+            // write new user and default settings to the Storage
+            Storage.getInstance().saveUserSettings(chatID, new UserSettings());
+
             this.sendMessage(chatID, MESSAGE1, BUTTONS1);
         }
         if (update.hasCallbackQuery()) {
@@ -49,7 +59,12 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
             }
 
             if (update.getCallbackQuery().getData().equals("info_btn")) {
-                this.sendMessage(chatID, MESSAGE7, BUTTONS1);
+
+                UserSettings userSettings = Storage.getInstance().getUserSettings(chatID);
+                Map<Bank, List<CurrencyRate>> bankRates = BankService.getBankRates(userSettings);
+                String prettyTextMessage = InfoMessage.getPrettyMessage(bankRates);
+
+                this.sendInfoMessage(chatID, prettyTextMessage);
             }
         }
     }
@@ -70,5 +85,9 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
     @Override
     public void deleteMessage(Long chatID, Map<Long, Integer> lastMessageIds) {
         //not released yet
+    }
+
+    public int sendInfoMessage(Long chatID, String textMessage){
+        return this.sendMessage(chatID, textMessage, BUTTONS1);
     }
 }
