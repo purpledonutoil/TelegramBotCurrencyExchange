@@ -6,7 +6,7 @@ import java.util.*;
 
 public class BankService {
     public static Map<Bank, List<CurrencyRate>> getBankRates(UserSettings settings) {
-        Map<Bank, List<CurrencyRate>> result = new HashMap<>();
+        Map<Bank, List<CurrencyRate>> result = new EnumMap<>(Bank.class);
 
         EnumSet<Bank> selectedBanks = settings.getBanks();
         EnumSet<Currency> selectedCurrencies = settings.getCurrencies();

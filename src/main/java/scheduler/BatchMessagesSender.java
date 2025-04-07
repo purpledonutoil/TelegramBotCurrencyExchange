@@ -40,7 +40,7 @@ public class BatchMessagesSender {
 
         for (Map.Entry<Long, UserSettings> userSettings : messagesSettings.entrySet()) {
             Map<Bank, List<CurrencyRate>> bankRates = BankService.getBankRates(userSettings.getValue());
-            String prettyTextMessage = InfoMessage.getPrettyMessage(bankRates);
+            String prettyTextMessage = InfoMessage.getPrettyMessage(bankRates, userSettings.getValue().getRoundNumber());
 
             scheduler.submit(() -> sendMessageWithRetry(userSettings.getKey(), prettyTextMessage, 0));
         }

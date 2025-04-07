@@ -2,6 +2,7 @@ package executor;
 
 import banking.Bank;
 import banking.BankService;
+import banking.Currency;
 import banking.CurrencyRate;
 import executor.commands.TelegramBotUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -35,7 +36,15 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
         Long chatID = TelegramBotUtils.getChatId(update);
         if (update.hasMessage() && update.getMessage().getText().equals("/start")) {
             // write new user and default settings to the Storage
-            Storage.getInstance().saveUserSettings(chatID, new UserSettings());
+            UserSettings userSettings = new UserSettings();
+//            // for testing purpose
+//            userSettings.addBank(Bank.NBU);
+//            userSettings.addBank(Bank.MONO);
+//            userSettings.addBank(Bank.PRIVAT);
+//            userSettings.addCurrency(Currency.USD);
+//            userSettings.addCurrency(Currency.EUR);
+//            userSettings.setRoundNumber(3);
+            Storage.getInstance().saveUserSettings(chatID, userSettings);
 
             this.sendMessage(chatID, MESSAGE1, BUTTONS1);
         }
@@ -62,7 +71,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
                 UserSettings userSettings = Storage.getInstance().getUserSettings(chatID);
                 Map<Bank, List<CurrencyRate>> bankRates = BankService.getBankRates(userSettings);
-                String prettyTextMessage = InfoMessage.getPrettyMessage(bankRates);
+                String prettyTextMessage = InfoMessage.getPrettyMessage(bankRates, userSettings.getRoundNumber());
 
                 this.sendInfoMessage(chatID, prettyTextMessage);
             }
