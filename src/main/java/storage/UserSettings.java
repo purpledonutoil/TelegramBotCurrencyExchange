@@ -75,4 +75,26 @@ public class UserSettings {
         }
         return null ;
     }
+
+    public EnumSet<Currency> setCurrency(Currency currency) {
+        Objects.requireNonNull(currency);
+        if (currencies.contains(currency)) {
+            removeCurrency(currency);
+        } else {
+            addCurrency(currency);
+        }
+        return EnumSet.copyOf(currencies);
+    }
+
+    public EnumSet<Bank> setBank(Bank bank) {
+        Objects.requireNonNull(bank);
+        if (banks.contains(bank)) {
+            removeBank(bank);
+        } else {
+            addBank(bank);
+        }
+        return EnumSet.copyOf(banks);
+    }
+
 }
+
