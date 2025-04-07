@@ -75,4 +75,14 @@ public class UserSettings {
         }
         return null ;
     }
+
+
+    private String bank = "PrivatBank";
+    public String getBank() {
+        return bank;
+    }
+    
+    public void setBank(String bank) {
+        this.bank = bank;
+    }
 }
