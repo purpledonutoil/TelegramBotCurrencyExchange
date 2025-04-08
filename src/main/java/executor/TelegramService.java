@@ -81,16 +81,17 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                 this.sendInfoMessage(chatID, prettyTextMessage);
             }
 
-            String currency = update.getCallbackQuery().getData().equals("currency_btn1") ? "USD" :
-                    update.getCallbackQuery().getData().equals("currency_btn2") ? "EUR" : null;
-
-            if (currency != null) {
+            String bank = update.getCallbackQuery().getData().equals("bank_btn1") ? "NBU" :
+                    update.getCallbackQuery().getData().equals("bank_btn2") ? "PRIVAT" :
+                            update.getCallbackQuery().getData().equals("bank_btn3") ? "MONO" :null;
+            if (bank != null) {
                 UserSettings userSettings = Storage.getInstance().getUserSettings(chatID);
-                EnumSet<Currency> currencies = userSettings.setCurrency(Currency.valueOf(currency));
-                String[] enumArray = currencies.stream()
-                        .map(Enum::name)
+                EnumSet<Bank> banks = userSettings.setBank(Bank.valueOf(bank));
+                String[] enumArray = banks.stream()
+                        .map(Bank::getTitle)
                         .toArray(String[]::new);
-                this.modifyButtons(chatID, lastMessageIds.get(chatID), enumArray, BUTTONS5);
+
+                this.modifyButtons(chatID, lastMessageIds.get(chatID), enumArray, BUTTONS4);
             }
 
         }
