@@ -2,7 +2,6 @@ package executor;
 
 import banking.Bank;
 import banking.BankService;
-import banking.Currency;
 import banking.CurrencyRate;
 import executor.commands.TelegramBotUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -24,6 +23,7 @@ import static executor.TelegramBotContent.*;
 public class TelegramService extends TelegramLongPollingBot implements TelegramBot {
     private static String botName;
     private static final Map<Long, Integer> lastMessageIds = new HashMap<>();
+    private final Map<Long, Boolean> messageReader = new HashMap<>();
 
     @Override
     public String getBotUsername() {
@@ -38,20 +38,37 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
     @Override
     public void onUpdateReceived(Update update) {
         Long chatID = TelegramBotUtils.getChatId(update);
-        if (update.hasMessage() && update.getMessage().getText().equals("/start")) {
-            // write new user and default settings to the Storage
-            UserSettings userSettings = new UserSettings();
-//            // for testing purpose
-//            userSettings.addBank(Bank.NBU);
-//            userSettings.addBank(Bank.MONO);
-//            userSettings.addBank(Bank.PRIVAT);
-//            userSettings.addCurrency(Currency.USD);
-//            userSettings.addCurrency(Currency.EUR);
-//            userSettings.setRoundNumber(3);
-            Storage.getInstance().saveUserSettings(chatID, userSettings);
+        if (update.hasMessage()) {
+            if (update.getMessage().getText().equals("/start")) {
+                // write new user and default settings to the Storage
+                UserSettings userSettings = new UserSettings();
+//                // for testing purpose
+//                userSettings.addBank(Bank.NBU);
+//                userSettings.addBank(Bank.MONO);
+//                userSettings.addBank(Bank.PRIVAT);
+//                userSettings.addCurrency(Currency.USD);
+//                userSettings.addCurrency(Currency.EUR);
+//                userSettings.setRoundNumber(3);
+                Storage.getInstance().saveUserSettings(chatID, userSettings);
+                this.sendMessage(chatID, MESSAGE1, BUTTONS1);
+            }
 
-            this.sendMessage(chatID, MESSAGE1, BUTTONS1);
+
+            String messageText = update.getMessage().getText();
+            if (Boolean.TRUE.equals(messageReader.get(chatID))) {
+                if (messageText.matches("^(1[0-8]|[9])$")) {
+                    int selectedHour = Integer.parseInt(messageText);
+                    UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+                    settings.setNotificationTime(selectedHour);
+                    Storage.getInstance().saveUserSettings(chatID, settings);
+                } else if (messageText.equalsIgnoreCase("Вимкнути повідомлення")) {
+                    UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+                    settings.setNotificationTime(-1);
+                    Storage.getInstance().saveUserSettings(chatID, settings);
+                }
+            }
         }
+
         if (update.hasCallbackQuery()) {
 
             if (update.getCallbackQuery().getData().equals("settings_btn")) {
@@ -72,6 +89,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
             }
             if (update.getCallbackQuery().getData().equals("notification_btn")) {
                 this.sendMessage(chatID, MESSAGE6, BUTTONS6);
+                messageReader.put(chatID, true);
             }
 
             if (update.getCallbackQuery().getData().equals("info_btn")) {
