@@ -59,10 +59,12 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
             }
 
             if (update.getCallbackQuery().getData().equals("decimalpoint_btn")) {
-                this.sendMessage(chatID, MESSAGE3, BUTTONS3);
+                int messageId = this.sendMessage(chatID, MESSAGE3, BUTTONS3);
+                lastMessageIds.put(chatID, messageId);
             }
             if (update.getCallbackQuery().getData().equals("bank_btn")) {
-                this.sendMessage(chatID, MESSAGE4, BUTTONS4);
+                int messageId = this.sendMessage(chatID, MESSAGE4, BUTTONS4);
+                lastMessageIds.put(chatID, messageId);
             }
             if (update.getCallbackQuery().getData().equals("currency_btn")) {
                 int messageId = this.sendMessage(chatID, MESSAGE5, BUTTONS5);
