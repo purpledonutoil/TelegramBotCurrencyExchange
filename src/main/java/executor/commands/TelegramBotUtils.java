@@ -76,4 +76,22 @@ public class TelegramBotUtils {
         keyboardMarkup.setKeyboard(keyboard);
         message.setReplyMarkup(keyboardMarkup);
     }
+
+    public static InlineKeyboardMarkup inlineKeyboard(Map<String, String> buttons) {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+    
+        for (Map.Entry<String, String> entry : buttons.entrySet()) {
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            button.setText(entry.getKey());
+            button.setCallbackData(entry.getValue());
+    
+            List<InlineKeyboardButton> row = new ArrayList<>();
+            row.add(button);
+            keyboard.add(row);
+        }
+    
+        markup.setKeyboard(keyboard);
+        return markup;
+    }
 }
