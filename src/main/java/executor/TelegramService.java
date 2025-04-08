@@ -16,9 +16,7 @@ import storage.Storage;
 import storage.UserSettings;
 import utils.InfoMessage;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static executor.TelegramBotContent.*;
 
@@ -89,7 +87,20 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
             }
 
             if (callbackData.equals("currency_btn")) {
-                this.sendMessage(chatID, MESSAGE5, BUTTONS5);
+                UserSettings userSettings = Storage.getInstance().getUserSettings(chatID);
+                this.sendMessage(chatID, MESSAGE5, getCurrencyButtons(userSettings));
+            }
+
+            if (callbackData.startsWith("currency_btn") && !callbackData.equals("currency_btn")) {
+                UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+                Set<Currency> currencies = new HashSet<>(settings.getCurrencies());
+
+                Currency selected = getCurrencyFromCallback(callbackData);
+                settings.setCurrency(selected);
+
+                Storage.getInstance().saveUserSettings(chatID, settings);
+
+                this.sendMessage(chatID, MESSAGE5, getCurrencyButtons(settings));
             }
 
             if (callbackData.equals("notification_btn")) {
@@ -128,5 +139,32 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
     public int sendInfoMessage(Long chatID, String textMessage){
         return this.sendMessage(chatID, textMessage, BUTTONS1);
+    }
+    private Currency getCurrencyFromCallback(String callback) {
+        return switch (callback) {
+            case "currency_btn1" -> Currency.USD;
+            case "currency_btn2" -> Currency.EUR;
+            default -> throw new IllegalArgumentException("Unknown currency callback: " + callback);
+        };
+    }
+
+    private String getCallbackFromCurrency(Currency currency) {
+        return switch (currency) {
+            case USD -> "currency_btn1";
+            case EUR -> "currency_btn2";
+            default -> throw new IllegalArgumentException("Unknown currency: " + currency);
+        };
+    }
+
+    private Map<String, String> getCurrencyButtons(UserSettings settings) {
+        Map<String, String> buttons = new LinkedHashMap<>();
+
+        for (Currency currency : List.of(Currency.USD, Currency.EUR)) {
+            boolean selected = settings.getCurrencies().contains(currency);
+            String label = (selected ? "✅ " : "") + currency.name();
+            buttons.put(label, getCallbackFromCurrency(currency));
+        }
+
+        return buttons;
     }
 }
