@@ -8,7 +8,7 @@ import java.util.Objects;
 public class UserSettings {
     public static final Bank DEFAULT_BANK = Bank.PRIVAT;
     public static final Currency DEFAULT_CURRENCY = Currency.USD;
-    public static final int DEFAULT_NOTIFICATION_TIME = -1;
+    public static final int DEFAULT_NOTIFICATION_TIME = 9;
     public static final int DEFAULT_DECIMAL_PLACE = 2;
 
     private EnumSet<Bank> banks;
@@ -76,13 +76,25 @@ public class UserSettings {
         return null ;
     }
 
+    public EnumSet<Currency> setCurrency(Currency currency) {
+        Objects.requireNonNull(currency);
+        if (currencies.contains(currency)) {
+            removeCurrency(currency);
+        } else {
+            addCurrency(currency);
+        }
+        return EnumSet.copyOf(currencies);
+    }
 
-    private String bank = "PrivatBank";
-    public String getBank() {
-        return bank;
+    public EnumSet<Bank> setBank(Bank bank) {
+        Objects.requireNonNull(bank);
+        if (banks.contains(bank)) {
+            removeBank(bank);
+        } else {
+            addBank(bank);
+        }
+        return EnumSet.copyOf(banks);
     }
-    
-    public void setBank(String bank) {
-        this.bank = bank;
-    }
+
 }
+
