@@ -100,14 +100,13 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                 UserSettings settings = Storage.getInstance().getUserSettings(chatID);
 
                 if (settings.getBanks().contains(selectedBank)) {
-                    settings.removeBank(selectedBank); // повертає дефолт, якщо список буде пустим
+                    settings.removeBank(selectedBank);
                 } else {
                     settings.addBank(selectedBank);
                 }
 
                 Storage.getInstance().saveUserSettings(chatID, settings);
 
-                // Оновлення клавіатури (без нового повідомлення)
                 try {
                     EditMessageReplyMarkup editedMarkup = new EditMessageReplyMarkup();
                     editedMarkup.setChatId(chatID.toString());
