@@ -92,7 +92,6 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
         try {
             return execute(message).getMessageId();
         } catch (TelegramApiException e) {
-            System.err.println("Error sending message: " + e.getMessage());
             e.printStackTrace();
         }
 
