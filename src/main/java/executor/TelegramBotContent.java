@@ -36,9 +36,10 @@ public class TelegramBotContent {
         BUTTONS2.put("Валюти", "currency_btn");
         BUTTONS2.put("Час оповіщень", "notification_btn");
 
-        BUTTONS3.put("2", "decimalpoint_btn1");
+        BUTTONS3.put("✅ 2", "decimalpoint_btn1");
         BUTTONS3.put("3", "decimalpoint_btn2");
         BUTTONS3.put("4", "decimalpoint_btn3");
+
 
         BUTTONS4.put("НБУ", "bank_btn1");
         BUTTONS4.put("ПриватБанк", "bank_btn2");

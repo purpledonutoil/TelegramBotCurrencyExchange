@@ -7,12 +7,17 @@ import banking.CurrencyRate;
 import executor.commands.TelegramBotUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import storage.Storage;
 import storage.UserSettings;
 import utils.InfoMessage;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +53,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
             this.sendMessage(chatID, MESSAGE1, BUTTONS1);
         }
+
         if (update.hasCallbackQuery()) {
 
             if (update.getCallbackQuery().getData().equals("settings_btn")) {
@@ -75,6 +81,75 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
                 this.sendInfoMessage(chatID, prettyTextMessage);
             }
+            if (update.getCallbackQuery().getData().startsWith("decimalpoint_btn")) {
+                int selectedValue = switch (update.getCallbackQuery().getData()) {
+                    case "decimalpoint_btn1" -> 2;
+                    case "decimalpoint_btn2" -> 3;
+                    case "decimalpoint_btn3" -> 4;
+                    default -> throw new IllegalStateException("Unexpected value");
+                };
+
+                UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+
+                if (settings.getRoundNumber() != selectedValue) {
+                    settings.setRoundNumber(selectedValue);
+
+                    int index = selectedValue - 2;
+                    int messageId = update.getCallbackQuery().getMessage().getMessageId();
+
+                    EditMessageReplyMarkup editMarkup = TelegramBotUtils.editMessageButtons(
+                            chatID,
+                            messageId,
+                            update.getCallbackQuery().getData(),
+                            TelegramBotContent.BUTTONS3,
+                            index
+                    );
+
+                    if (editMarkup != null) {
+                        try {
+                            execute(editMarkup);
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            if (update.getCallbackQuery().getData().startsWith("decimalpoint_btn")) {
+                int selectedDecimal = switch (update.getCallbackQuery().getData()) {
+                    case "decimalpoint_btn1" -> 2;
+                    case "decimalpoint_btn2" -> 3;
+                    case "decimalpoint_btn3" -> 4;
+                    default -> UserSettings.DEFAULT_DECIMAL_PLACE;
+                };
+
+                UserSettings userSettings = Storage.getInstance().getUserSettings(chatID);
+
+                if (userSettings.getRoundNumber() == selectedDecimal) {
+                    return;
+                }
+
+                userSettings.setRoundNumber(selectedDecimal);
+
+                Map<String, String> updatedButtons = TelegramBotContent.BUTTONS3.entrySet().stream()
+                        .collect(java.util.stream.Collectors.toMap(
+                                e -> {
+                                    String label = e.getKey().replace("✅ ", "");
+                                    if (label.equals(String.valueOf(selectedDecimal))) {
+                                        return "✅ " + label;
+                                    } else {
+                                        return label;
+                                    }
+                                },
+                                Map.Entry::getValue,
+                                (e1, e2) -> e1,
+                                java.util.LinkedHashMap::new
+                        ));
+
+                editInlineKeyboard(chatID, update.getCallbackQuery().getMessage().getMessageId(), updatedButtons);
+            }
+
+
+
         }
     }
 
@@ -99,4 +174,30 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
     public int sendInfoMessage(Long chatID, String textMessage){
         return this.sendMessage(chatID, textMessage, BUTTONS1);
     }
+    private void editInlineKeyboard(Long chatID, int messageId, Map<String, String> buttons) {
+        EditMessageReplyMarkup editMarkup = new EditMessageReplyMarkup();
+        editMarkup.setChatId(chatID.toString());
+        editMarkup.setMessageId(messageId);
+
+        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : buttons.entrySet()) {
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            button.setText(entry.getKey());
+            button.setCallbackData(entry.getValue());
+            keyboard.add(List.of(button));
+        }
+
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(keyboard);
+
+        editMarkup.setReplyMarkup(markup);
+
+        try {
+            execute(editMarkup);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

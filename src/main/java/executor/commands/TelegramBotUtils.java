@@ -1,6 +1,7 @@
 package executor.commands;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -75,5 +76,39 @@ public class TelegramBotUtils {
 
         keyboardMarkup.setKeyboard(keyboard);
         message.setReplyMarkup(keyboardMarkup);
+    }
+    public static EditMessageReplyMarkup editMessageButtons(Long chatId, int messageId, String clickedCallback,
+                                                            Map<String, String> buttons, int selectedIndex) {
+        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+        int index = 0;
+
+        for (Map.Entry<String, String> entry : buttons.entrySet()) {
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            String label = entry.getKey();
+            String callback = entry.getValue();
+
+            if (index == selectedIndex) {
+                if (!label.startsWith("✅")) {
+                    label = "✅ " + label;
+                }
+            } else {
+                label = label.replace("✅ ", "");
+            }
+
+            button.setText(label);
+            button.setCallbackData(callback);
+            keyboard.add(List.of(button));
+            index++;
+        }
+
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(keyboard);
+
+        EditMessageReplyMarkup editMarkup = new EditMessageReplyMarkup();
+        editMarkup.setChatId(chatId.toString());
+        editMarkup.setMessageId(messageId);
+        editMarkup.setReplyMarkup(markup);
+
+        return editMarkup;
     }
 }
