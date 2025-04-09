@@ -8,7 +8,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class NBUConnection implements BankConnection {
@@ -16,12 +18,12 @@ public class NBUConnection implements BankConnection {
     private static final String API_URL = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json";
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private int retries = 2;
 
     @Override
     public List<CurrencyRate> getRates(EnumSet<Currency> currencies) {
         List<CurrencyRate> rates = new ArrayList<>();
 
-        int retries = 2;
         while (retries > 0) {
             try {
                 HttpRequest request = HttpRequest.newBuilder()

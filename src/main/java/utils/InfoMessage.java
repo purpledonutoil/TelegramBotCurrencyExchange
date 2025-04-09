@@ -8,9 +8,9 @@ import java.util.Map;
 
 public class InfoMessage {
     public static final String RATE_MESSAGE_TEMPLATE = """
-            Курс в %bank%: %currency%/%baseCurrency%
-            Покупка: %buyRate%
-            Продаж: %sellRate%""";
+                    Курс в %s: %s/%s
+                    Купівля: %s
+                    Продаж: %s""";
     public static final String RATE_MESSAGE_DELIMITER = "\n-----------------\n";
     public static final String EMPTY_RATE_TEMPLATE = "no data";
 
@@ -31,7 +31,7 @@ public class InfoMessage {
             List<CurrencyRate> currencyRates = bankRatesEntry.getValue();
             String bankTitle = bank.getTitle();
 
-            if (currencyRates.isEmpty()) {
+            if (currencyRates == null || currencyRates.isEmpty()) {
                 result.append(isFirstRecord ? "" : RATE_MESSAGE_DELIMITER);
                 result.append("Не вдалось завантажити курси валют для ");
                 result.append(bankTitle);
@@ -43,16 +43,7 @@ public class InfoMessage {
             }
 
             for (CurrencyRate currencyRate : currencyRates) {
-                float buyRate = currencyRate.getBuyRate();
-                float sellRate = currencyRate.getSellRate();
-                String currentBuyRate = buyRate == -1 ? EMPTY_RATE_TEMPLATE : String.format(roundFormat, buyRate);
-                String currentSellRate = sellRate == -1 ? EMPTY_RATE_TEMPLATE : String.format(roundFormat, sellRate);
-
-                String rateResult = RATE_MESSAGE_TEMPLATE.replace("%bank%", bankTitle)
-                        .replace("%currency%", currencyRate.getCurrency().toString())
-                        .replace("%baseCurrency%", currencyRate.getBaseCurrency().toString())
-                        .replace("%buyRate%", currentBuyRate)
-                        .replace("%sellRate%", currentSellRate);
+                String rateResult = formatMessage(currencyRate, bankTitle, roundFormat);
 
                 result.append(isFirstRecord ? "" : RATE_MESSAGE_DELIMITER);
                 result.append(rateResult);
@@ -66,4 +57,15 @@ public class InfoMessage {
         return result.toString();
     }
 
+    private static String formatMessage(CurrencyRate rate, String bankTitle, String roundFormat) {
+            String buy = rate.getBuyRate() == -1 ? EMPTY_RATE_TEMPLATE : String.format(roundFormat, rate.getBuyRate());
+            String sell = rate.getSellRate() == -1 ? EMPTY_RATE_TEMPLATE : String.format(roundFormat, rate.getSellRate());
+
+            return String.format(RATE_MESSAGE_TEMPLATE,
+                    bankTitle,
+                    rate.getCurrency(),
+                    rate.getBaseCurrency(),
+                    buy,
+                    sell);
+    }
 }
