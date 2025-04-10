@@ -2,6 +2,7 @@ package executor;
 
 import banking.Bank;
 import banking.BankService;
+import banking.Currency;
 import banking.CurrencyRate;
 import utils.TelegramBotUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -87,6 +88,26 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                 int messageId = this.sendMessage(chatID, MESSAGE5, BUTTONS5);
                 lastMessageIds.put(chatID, messageId);
             }
+            if (update.getCallbackQuery().getData().startsWith("currency_btn") &&
+                    !update.getCallbackQuery().getData().equals("currency_btn")) {
+
+                UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+                Currency selected = getCurrencyFromCallback(update.getCallbackQuery().getData());
+                settings.setCurrency(selected);
+                Storage.getInstance().saveUserSettings(chatID, settings);
+
+                EnumSet<Currency> selectedCurrencies = settings.getCurrencies();
+                String[] selectedValues = selectedCurrencies.stream()
+                        .map(Currency::name)
+                        .toArray(String[]::new);
+
+                this.modifyButtons(
+                        chatID,
+                        lastMessageIds.get(chatID),
+                        selectedValues,
+                        BUTTONS5
+                );
+            }
             if (update.getCallbackQuery().getData().equals("notification_btn")) {
                 this.sendMessage(chatID, MESSAGE6, BUTTONS6);
                 messageReader.put(chatID, true);
@@ -146,5 +167,12 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
     public int sendInfoMessage(Long chatID, String textMessage){
         return this.sendMessage(chatID, textMessage, BUTTONS1);
+    }
+    private Currency getCurrencyFromCallback(String callback) {
+        return switch (callback) {
+            case "currency_btn1" -> Currency.USD;
+            case "currency_btn2" -> Currency.EUR;
+            default -> throw new IllegalArgumentException("Unknown currency callback: " + callback);
+        };
     }
 }
