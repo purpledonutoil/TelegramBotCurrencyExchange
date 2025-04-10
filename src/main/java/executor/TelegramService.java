@@ -4,7 +4,7 @@ import banking.Bank;
 import banking.BankService;
 import banking.Currency;
 import banking.CurrencyRate;
-import executor.commands.TelegramBotUtils;
+import utils.TelegramBotUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
@@ -97,12 +97,11 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                     int index = selectedValue - 2;
                     int messageId = update.getCallbackQuery().getMessage().getMessageId();
 
-                    EditMessageReplyMarkup editMarkup = TelegramBotUtils.editMessageButtons(
+                    EditMessageReplyMarkup editMarkup = TelegramBotUtils.modifyButtons(
                             chatID,
                             messageId,
-                            update.getCallbackQuery().getData(),
-                            TelegramBotContent.BUTTONS3,
-                            index
+                            new String[]{String.valueOf(selectedValue)},
+                            TelegramBotContent.BUTTONS3
                     );
 
                     if (editMarkup != null) {
