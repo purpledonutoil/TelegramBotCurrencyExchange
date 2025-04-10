@@ -56,17 +56,5 @@ public class TelegramBotContent {
         BUTTONS6.put("notification_btn9", "17");
         BUTTONS6.put("notification_btn10", "18");
         BUTTONS6.put("notification_btn11", "Вимкнути повідомлення");
-
-//        BUTTONS6.put("9", "notification_btn1");
-//        BUTTONS6.put("10", "notification_btn2");
-//        BUTTONS6.put("11", "notification_btn3");
-//        BUTTONS6.put("12", "notification_btn4");
-//        BUTTONS6.put("13", "notification_btn5");
-//        BUTTONS6.put("14", "notification_btn6");
-//        BUTTONS6.put("15", "notification_btn7");
-//        BUTTONS6.put("16", "notification_btn8");
-//        BUTTONS6.put("17", "notification_btn9");
-//        BUTTONS6.put("18", "notification_btn10");
-//        BUTTONS6.put("Вимкнути повідомлення", "notification_btn11");
     }
 }
