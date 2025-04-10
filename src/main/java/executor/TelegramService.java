@@ -76,6 +76,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
             if (update.getCallbackQuery().getData().equals("decimalpoint_btn")) {
                 this.sendMessage(chatID, MESSAGE3, BUTTONS3, lastMessageWithButtonsIds,lastMessageWithKeyboardIds);
             }
+
             if (update.getCallbackQuery().getData().equals("bank_btn")) {
                 this.sendMessage(chatID, MESSAGE4, BUTTONS4, lastMessageWithButtonsIds,lastMessageWithKeyboardIds);
             }
@@ -101,7 +102,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
             String bank = update.getCallbackQuery().getData().equals("bank_btn1") ? "NBU" :
                     update.getCallbackQuery().getData().equals("bank_btn2") ? "PRIVAT" :
-                            update.getCallbackQuery().getData().equals("bank_btn3") ? "MONO" :null;
+                            update.getCallbackQuery().getData().equals("bank_btn3") ? "MONO" : null;
             if (bank != null) {
                 UserSettings userSettings = Storage.getInstance().getUserSettings(chatID);
                 EnumSet<Bank> banks = userSettings.setBank(Bank.valueOf(bank));
@@ -165,17 +166,17 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
         }
     }
 
-    @Override
-    public int sendMessage(Long chatID, String text, Map<String, String> buttons) {
-        SendMessage message = TelegramBotUtils.createMessage(chatID, text, buttons);
+        @Override
+        public int sendMessage (Long chatID, String text, Map < String, String > buttons){
+            SendMessage message = TelegramBotUtils.createMessage(chatID, text, buttons);
 
-        try {
-            return execute(message).getMessageId();
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+            try {
+                return execute(message).getMessageId();
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+            return 0;
         }
-        return 0;
-    }
 
     public void modifyMessage(Long chatID, int messageId, String message, Map<String, String> buttons){
         EditMessageText editText = TelegramBotUtils.modifyText(chatID, messageId, message, buttons);
@@ -189,13 +190,13 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
     public void modifyButtons(Long chatID, int messageId, String[] values, Map<String, String> buttons){
         EditMessageReplyMarkup editMarkup = TelegramBotUtils.modifyButtons(chatID, messageId, values, buttons);
-
-        try {
-            execute(editMarkup);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+      
+            try {
+                execute(editMarkup);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
         }
-    }
 
     @Override
     public void deleteMessage(Long chatID, Map<Long, Integer> lastMessageIds) {
@@ -228,3 +229,6 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
         };
     }
 }
+
+
+
