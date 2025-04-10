@@ -80,6 +80,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                 int messageId = this.sendMessage(chatID, MESSAGE3, BUTTONS3);
                 lastMessageIds.put(chatID, messageId);
             }
+
             if (update.getCallbackQuery().getData().equals("bank_btn")) {
                 int messageId = this.sendMessage(chatID, MESSAGE4, BUTTONS4);
                 lastMessageIds.put(chatID, messageId);
@@ -124,7 +125,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
             String bank = update.getCallbackQuery().getData().equals("bank_btn1") ? "NBU" :
                     update.getCallbackQuery().getData().equals("bank_btn2") ? "PRIVAT" :
-                            update.getCallbackQuery().getData().equals("bank_btn3") ? "MONO" :null;
+                            update.getCallbackQuery().getData().equals("bank_btn3") ? "MONO" : null;
             if (bank != null) {
                 UserSettings userSettings = Storage.getInstance().getUserSettings(chatID);
                 EnumSet<Bank> banks = userSettings.setBank(Bank.valueOf(bank));
@@ -134,45 +135,65 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
                 this.modifyButtons(chatID, lastMessageIds.get(chatID), enumArray, BUTTONS4);
             }
+            if (update.getCallbackQuery().getData().startsWith("decimalpoint_btn")) {
+                int selectedValue = switch (update.getCallbackQuery().getData()) {
+                    case "decimalpoint_btn1" -> 2;
+                    case "decimalpoint_btn2" -> 3;
+                    case "decimalpoint_btn3" -> 4;
+                    default -> throw new IllegalStateException("Unexpected value");
+                };
+
+                UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+
+                if (settings.getRoundNumber() != selectedValue) {
+                    settings.setRoundNumber(selectedValue);
+                    int messageId = update.getCallbackQuery().getMessage().getMessageId();
+                    String[] selectedValues = new String[]{String.valueOf(selectedValue)};
+                     this.modifyButtons(chatID, messageId, selectedValues, BUTTONS3);
+                }
+            }
 
         }
     }
 
-    @Override
-    public int sendMessage(Long chatID, String text, Map<String, String> buttons) {
-        SendMessage message = TelegramBotUtils.createMessage(chatID, text, buttons);
+        @Override
+        public int sendMessage (Long chatID, String text, Map < String, String > buttons){
+            SendMessage message = TelegramBotUtils.createMessage(chatID, text, buttons);
 
-        try {
-            return execute(message).getMessageId();
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+            try {
+                return execute(message).getMessageId();
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+            return 0;
         }
-        return 0;
-    }
 
-    public void modifyButtons(Long chatID, int messageId, String[] values, Map<String, String> buttons){
-        EditMessageReplyMarkup editMarkup = TelegramBotUtils.modifyButtons(chatID, messageId, values, buttons);
+        public void modifyButtons (Long chatID,int messageId, String[] values, Map < String, String > buttons){
+            EditMessageReplyMarkup editMarkup = TelegramBotUtils.modifyButtons(chatID, messageId, values, buttons);
 
-        try {
-            execute(editMarkup);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+            try {
+                execute(editMarkup);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
         }
-    }
 
-    @Override
-    public void deleteMessage(Long chatID, Map<Long, Integer> lastMessageIds) {
-        //not released yet
-    }
+        @Override
+        public void deleteMessage (Long chatID, Map < Long, Integer > lastMessageIds){
+            //not released yet
+        }
 
-    public int sendInfoMessage(Long chatID, String textMessage){
-        return this.sendMessage(chatID, textMessage, BUTTONS1);
-    }
-    private Currency getCurrencyFromCallback(String callback) {
-        return switch (callback) {
-            case "currency_btn1" -> Currency.USD;
-            case "currency_btn2" -> Currency.EUR;
-            default -> throw new IllegalArgumentException("Unknown currency callback: " + callback);
-        };
+        public int sendInfoMessage (Long chatID, String textMessage){
+            return this.sendMessage(chatID, textMessage, BUTTONS1);
+        }
+        private Currency getCurrencyFromCallback (String callback){
+            return switch (callback) {
+                case "currency_btn1" -> Currency.USD;
+                case "currency_btn2" -> Currency.EUR;
+                default -> throw new IllegalArgumentException("Unknown currency callback: " + callback);
+            };
     }
 }
+
+
+
