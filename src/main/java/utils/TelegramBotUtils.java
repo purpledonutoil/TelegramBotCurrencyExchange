@@ -3,6 +3,7 @@ package utils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -34,7 +35,8 @@ public class TelegramBotUtils {
         SendMessage message = createMessage(chatId, text);
         if (buttons != null && !buttons.isEmpty()) {
             if (buttons.size()<6){
-                attachButtons(message, buttons);
+                InlineKeyboardMarkup markup = attachButtons(buttons);
+                message.setReplyMarkup(markup);
             }
             else{
                 attachKeyboard(message, buttons);
@@ -43,7 +45,7 @@ public class TelegramBotUtils {
         return message;
     }
 
-    private static InlineKeyboardMarkup attachButtons(SendMessage message, Map<String, String> buttons) {
+    private static InlineKeyboardMarkup attachButtons(Map<String, String> buttons) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
 
@@ -55,7 +57,6 @@ public class TelegramBotUtils {
         }
 
         markup.setKeyboard(keyboard);
-        message.setReplyMarkup(markup);
         return markup;
     }
 
@@ -77,15 +78,6 @@ public class TelegramBotUtils {
 
         keyboardMarkup.setKeyboard(keyboard);
         message.setReplyMarkup(keyboardMarkup);
-    }
-
-    public static EditMessageText modifyMessage(Long chatId, int messageId, String message, Map<String, String> buttons) {
-        EditMessageText editText = new EditMessageText();
-        editText.setChatId(chatId);
-        editText.setMessageId(messageId);
-        editText.setText(message);
-        //editText.setReplyMarkup(newInlineKeyboard);
-        return editText;
     }
 
     public static EditMessageReplyMarkup modifyButtons(Long chatId, int messageId, String[] values, Map<String, String> buttons) {
@@ -127,5 +119,17 @@ public class TelegramBotUtils {
         editMarkup.setReplyMarkup(markup);
 
         return editMarkup;
+    }
+    public static EditMessageText modifyText(Long chatId, int messageId, String newText, Map<String, String> newButtons) {
+        InlineKeyboardMarkup markup = null;
+        markup = attachButtons(newButtons);
+
+        EditMessageText editMessage = new EditMessageText();
+        editMessage.setChatId(chatId);
+        editMessage.setMessageId(messageId);
+        editMessage.setText(newText);
+        editMessage.setReplyMarkup(markup);
+
+        return editMessage;
     }
 }
