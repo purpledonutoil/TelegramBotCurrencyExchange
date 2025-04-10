@@ -2,6 +2,7 @@ package utils;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -42,7 +43,7 @@ public class TelegramBotUtils {
         return message;
     }
 
-    private static void attachButtons(SendMessage message, Map<String, String> buttons) {
+    private static InlineKeyboardMarkup attachButtons(SendMessage message, Map<String, String> buttons) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
 
@@ -55,43 +56,8 @@ public class TelegramBotUtils {
 
         markup.setKeyboard(keyboard);
         message.setReplyMarkup(markup);
+        return markup;
     }
-
-    public static EditMessageReplyMarkup modifyButtons(Long chatId, int messageId, String[] values, Map<String, String> buttons) {
-        EditMessageReplyMarkup editMarkup = new EditMessageReplyMarkup();
-        editMarkup.setChatId(chatId);
-        editMarkup.setMessageId(messageId);
-        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
-
-        for (Map.Entry<String, String> entry : buttons.entrySet()) {
-            if (entry.getValue().contains("✅")){
-                buttons.replace(entry.getKey(), entry.getValue().substring(1));
-            }
-        }
-        for (String value : values) {
-            for (Map.Entry<String, String> entry : buttons.entrySet()) {
-                if (entry.getValue().equals(value)){
-                    buttons.replace(entry.getKey(), "✅" + entry.getValue());
-                }
-            }
-        }
-
-        for (Map.Entry<String, String> entry : buttons.entrySet()) {
-            InlineKeyboardButton newButton = new InlineKeyboardButton();
-            newButton.setText(entry.getValue());
-            newButton.setCallbackData(entry.getKey());
-            List<InlineKeyboardButton> row = new ArrayList<>();
-            row.add(newButton);
-            keyboard.add(List.of(newButton));
-        }
-
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(keyboard);
-        editMarkup.setReplyMarkup(markup);
-
-        return editMarkup;
-    }
-
 
     private static void attachKeyboard(SendMessage message, Map<String, String> buttons) {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
@@ -111,5 +77,55 @@ public class TelegramBotUtils {
 
         keyboardMarkup.setKeyboard(keyboard);
         message.setReplyMarkup(keyboardMarkup);
+    }
+
+    public static EditMessageText modifyMessage(Long chatId, int messageId, String message, Map<String, String> buttons) {
+        EditMessageText editText = new EditMessageText();
+        editText.setChatId(chatId);
+        editText.setMessageId(messageId);
+        editText.setText(message);
+        //editText.setReplyMarkup(newInlineKeyboard);
+        return editText;
+    }
+
+    public static EditMessageReplyMarkup modifyButtons(Long chatId, int messageId, String[] values, Map<String, String> buttons) {
+
+        for (Map.Entry<String, String> entry : buttons.entrySet()) {
+            if (entry.getValue().contains("✅")){
+                buttons.replace(entry.getKey(), entry.getValue().substring(1));
+            }
+        }
+        for (String value : values) {
+            for (Map.Entry<String, String> entry : buttons.entrySet()) {
+                if (entry.getValue().equals(value)){
+                    buttons.replace(entry.getKey(), "✅" + entry.getValue());
+                }
+            }
+        }
+        EditMessageReplyMarkup editMarkup = modifyButtons(chatId, messageId, buttons);
+
+        return editMarkup;
+    }
+
+    public static EditMessageReplyMarkup modifyButtons(Long chatId, int messageId, Map<String, String> buttons) {
+        EditMessageReplyMarkup editMarkup = new EditMessageReplyMarkup();
+        editMarkup.setChatId(chatId);
+        editMarkup.setMessageId(messageId);
+        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : buttons.entrySet()) {
+            InlineKeyboardButton newButton = new InlineKeyboardButton();
+            newButton.setText(entry.getValue());
+            newButton.setCallbackData(entry.getKey());
+            List<InlineKeyboardButton> row = new ArrayList<>();
+            row.add(newButton);
+            keyboard.add(List.of(newButton));
+        }
+
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(keyboard);
+        editMarkup.setReplyMarkup(markup);
+
+        return editMarkup;
     }
 }
