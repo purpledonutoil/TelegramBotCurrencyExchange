@@ -175,12 +175,4 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
             default -> throw new IllegalArgumentException("Unknown currency callback: " + callback);
         };
     }
-
-    private String getCallbackFromCurrency(Currency currency) {
-        return switch (currency) {
-            case USD -> "currency_btn1";
-            case EUR -> "currency_btn2";
-            default -> throw new IllegalArgumentException("Unknown currency: " + currency);
-        };
-    }
 }
