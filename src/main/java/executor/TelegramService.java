@@ -24,7 +24,8 @@ import static executor.TelegramBotContent.*;
 
 public class TelegramService extends TelegramLongPollingBot implements TelegramBot {
     private static String botName;
-    private static final Map<Long, Integer> lastMessageIds = new HashMap<>();
+    private static final Map<Long, Integer> lastMessageWithButtonsIds = new HashMap<>();
+    private static final Map<Long, Integer> lastMessageWithKeyboardIds = new HashMap<>();
     private static final Map<Long, Integer> lastSettingsMessageIds = new HashMap<>();
     private final Map<Long, Boolean> messageReader = new HashMap<>();
 
@@ -83,7 +84,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                         .map(Bank::getTitle)
                         .toArray(String[]::new);
 
-                this.modifyButtons(chatID, lastMessageIds.get(chatID), enumArray, BUTTONS4);
+                this.modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), enumArray, BUTTONS4);
             }
             if (update.getCallbackQuery().getData().startsWith("currency_btn") &&
                     !update.getCallbackQuery().getData().equals("currency_btn")) {
@@ -100,12 +101,11 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
                 this.modifyButtons(
                         chatID,
-                        lastMessageIds.get(chatID),
+                        lastMessageWithButtonsIds.get(chatID),
                         selectedValues,
                         BUTTONS5
                 );
             }
-            //deleteMessage(chatID, lastMessageIds);
             if (update.getCallbackQuery().getData().equals("settings_btn")) {
                 if (lastSettingsMessageIds.get(chatID)==null){
                     int messageId = this.sendMessage(chatID, MESSAGE2, BUTTONS2);
@@ -113,38 +113,50 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                 }
             }
             if (update.getCallbackQuery().getData().equals("decimalpoint_btn")) {
-                if (lastMessageIds.get(chatID)==null){
+                if (lastMessageWithButtonsIds.get(chatID)==null
+                        || lastMessageWithKeyboardIds.get(chatID)!=null){
+                    deleteMessage(chatID, lastMessageWithKeyboardIds);
                     int messageId = this.sendMessage(chatID, MESSAGE3, BUTTONS3);
-                    lastMessageIds.put(chatID, messageId);
+                    lastMessageWithButtonsIds.put(chatID, messageId);
                 } else {
-                    this.modifyMessage(chatID, lastMessageIds.get(chatID), MESSAGE3, BUTTONS3);
+                    this.modifyMessage(chatID, lastMessageWithButtonsIds.get(chatID), MESSAGE3, BUTTONS3);
                 }
             }
             if (update.getCallbackQuery().getData().equals("bank_btn")) {
-                if (lastMessageIds.get(chatID)==null){
+                if (lastMessageWithButtonsIds.get(chatID)==null
+                        || lastMessageWithKeyboardIds.get(chatID)!=null){
+                    deleteMessage(chatID, lastMessageWithKeyboardIds);
                     int messageId = this.sendMessage(chatID, MESSAGE4, BUTTONS4);
-                    lastMessageIds.put(chatID, messageId);
+                    lastMessageWithButtonsIds.put(chatID, messageId);
                 } else {
-                    this.modifyMessage(chatID, lastMessageIds.get(chatID), MESSAGE4, BUTTONS4);
+                    this.modifyMessage(chatID, lastMessageWithButtonsIds.get(chatID), MESSAGE4, BUTTONS4);
                 }
             }
             if (update.getCallbackQuery().getData().equals("currency_btn")) {
-                if (lastMessageIds.get(chatID)==null){
+                if (lastMessageWithButtonsIds.get(chatID)==null
+                || lastMessageWithKeyboardIds.get(chatID)!=null){
+                    deleteMessage(chatID, lastMessageWithKeyboardIds);
                     int messageId = this.sendMessage(chatID, MESSAGE5, BUTTONS5);
-                    lastMessageIds.put(chatID, messageId);
+                    lastMessageWithButtonsIds.put(chatID, messageId);
                 } else {
-                    this.modifyMessage(chatID, lastMessageIds.get(chatID), MESSAGE5, BUTTONS5);
+                    this.modifyMessage(chatID, lastMessageWithButtonsIds.get(chatID), MESSAGE5, BUTTONS5);
                 }
             }
             if (update.getCallbackQuery().getData().equals("notification_btn")) {
-                int messageId = this.sendMessage(chatID, MESSAGE6, BUTTONS6);
-                lastMessageIds.put(chatID, messageId);
+                if (lastMessageWithButtonsIds.get(chatID)!=null
+                        || lastMessageWithKeyboardIds.get(chatID)==null){
+                    deleteMessage(chatID, lastMessageWithButtonsIds);
+                    int messageId = this.sendMessage(chatID, MESSAGE6, BUTTONS6);
+                    lastMessageWithKeyboardIds.put(chatID, messageId);
+                } else {
+                    this.modifyMessage(chatID, lastMessageWithButtonsIds.get(chatID), MESSAGE6, BUTTONS6);
+                }
                 messageReader.put(chatID, true);
             }
 
             if (update.getCallbackQuery().getData().equals("info_btn")) {
                 deleteMessage(chatID, lastSettingsMessageIds);
-                deleteMessage(chatID, lastMessageIds);
+                deleteMessage(chatID, lastMessageWithButtonsIds);
 
                 UserSettings userSettings = Storage.getInstance().getUserSettings(chatID);
                 Map<Bank, List<CurrencyRate>> bankRates = BankService.getBankRates(userSettings);
