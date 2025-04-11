@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 public class MonoBankConnection implements BankConnection {
@@ -20,7 +21,9 @@ public class MonoBankConnection implements BankConnection {
     private static final String API_URL = "https://api.monobank.ua/bank/currency";
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private int retries = 2;
+    private static final int MAX_RETRIES = 2;
+
+
 
     private static final Map<Integer, Currency> codeToCurrency = Map.of(
             980, Currency.UAH,
@@ -30,6 +33,7 @@ public class MonoBankConnection implements BankConnection {
 
     @Override
     public List<CurrencyRate> getRates(EnumSet<Currency> currencies) {
+        int retries = MAX_RETRIES;
         List<CurrencyRate> rates = new ArrayList<>();
 
         while (retries > 0) {
@@ -42,7 +46,7 @@ public class MonoBankConnection implements BankConnection {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() != HttpStatus.SC_OK){
-                    return null;
+                    return Collections.emptyList();
                 }
 
                 JsonNode root = objectMapper.readTree(response.body());
@@ -60,6 +64,9 @@ public class MonoBankConnection implements BankConnection {
                         float sell = rateNode.has("rateSell") ? (float) rateNode.get("rateSell").asDouble() : -1;
 
                         rates.add(new CurrencyRate(currency, buy, sell));
+                        if (rates.size() == currencies.size()) {
+                            break;
+                        }
                     }
                 }
                 break;
@@ -76,7 +83,7 @@ public class MonoBankConnection implements BankConnection {
         }
 
         if (retries == 0) {
-            return null;
+            return Collections.emptyList();
         }
 
         return rates;
