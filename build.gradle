@@ -9,7 +9,6 @@ application {
 compileJava {options.encoding = "UTF-8"}
 
 group = 'org.telegrambot'
-version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -21,7 +20,6 @@ dependencies {
     implementation group: 'org.telegram', name: 'telegrambots', version: '6.9.7.1'
     implementation 'ch.qos.logback:logback-classic:1.5.18'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.12.1'
-    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
 }
 
 test {
