@@ -2,7 +2,10 @@ package banking;
 
 import storage.UserSettings;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 
 public class BankService {
     public static Map<Bank, List<CurrencyRate>> getBankRates(UserSettings settings) {
