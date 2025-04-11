@@ -4,20 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
-public class NBUConnection implements BankConnection {
+public class NBUConnection extends AbstractBankConnection implements BankConnection {
 
     private static final String API_URL = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json";
-    private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final int MAX_RETRIES = 2;
 
@@ -28,14 +23,9 @@ public class NBUConnection implements BankConnection {
 
         while (retries > 0) {
             try {
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(API_URL))
-                        .GET()
-                        .build();
+                HttpResponse<String> response = connectWithBank(API_URL);
 
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-                if (response.statusCode() != 200) {
+                if (response==null){
                     return Collections.emptyList();
                 }
 
@@ -49,26 +39,18 @@ public class NBUConnection implements BankConnection {
 
                         if (currencies.contains(currency)) {
                             float rate = (float) rateNode.get("rate").asDouble();
-
                             rates.add(new CurrencyRate(currency, rate, rate));
                             if (rates.size() == currencies.size()) {
                                 break;
                             }
                         }
-                    } catch (IllegalArgumentException ignored) {
+                    } catch (IllegalArgumentException e) {
 
                     }
                 }
                 break;
             } catch (IOException | InterruptedException e) {
-                retries--;
-                if (retries > 0) {
-                    try {
-                        TimeUnit.SECONDS.sleep(2);
-                    } catch (InterruptedException interruptedException) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
+                retries=waitAndRetryAgain(retries);
             }
         }
 
