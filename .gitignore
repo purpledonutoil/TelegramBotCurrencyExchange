@@ -49,3 +49,8 @@ gradlew.bat
 build
 settings.gradle
 .env
+
+# Ignore configuration file
+*.properties
+# Don't ignore template
+!*.properties.template
