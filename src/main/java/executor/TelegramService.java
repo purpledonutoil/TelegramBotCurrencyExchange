@@ -53,42 +53,15 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
             String messageText = update.getMessage().getText();
             if (Boolean.TRUE.equals(messageReader.get(chatID))) {
-                if (messageText.matches("^(1[0-8]|[9])$")) {
-                    int selectedHour = Integer.parseInt(messageText);
-                    UserSettings settings = Storage.getInstance().getUserSettings(chatID);
-                    settings.setNotificationTime(selectedHour);
-                    Storage.getInstance().saveUserSettings(chatID, settings);
-                } else if (messageText.equalsIgnoreCase("Вимкнути повідомлення")) {
-                    UserSettings settings = Storage.getInstance().getUserSettings(chatID);
-                    settings.setNotificationTime(-1);
-                    Storage.getInstance().saveUserSettings(chatID, settings);
-                }
+                this.changeNotificationSettings(chatID, messageText);
             }
         }
 
         if (update.hasCallbackQuery()) {
-            if (update.getCallbackQuery().getData().equals("settings_btn")
-                    && lastSettingsMessageIds.get(chatID)==null){
-                    int messageId = this.sendMessage(chatID, MESSAGE2, BUTTONS2);
-                    lastSettingsMessageIds.put(chatID, messageId);
-                }
+            String callback = update.getCallbackQuery().getData();
+            this.answerPressedSettingsButton(chatID, callback);
 
-            if (update.getCallbackQuery().getData().equals("decimalpoint_btn")) {
-                this.sendMessage(chatID, MESSAGE3, BUTTONS3, lastMessageWithButtonsIds,lastMessageWithKeyboardIds);
-            }
-
-            if (update.getCallbackQuery().getData().equals("bank_btn")) {
-                this.sendMessage(chatID, MESSAGE4, BUTTONS4, lastMessageWithButtonsIds,lastMessageWithKeyboardIds);
-            }
-            if (update.getCallbackQuery().getData().equals("currency_btn")) {
-                this.sendMessage(chatID, MESSAGE5, BUTTONS5, lastMessageWithButtonsIds,lastMessageWithKeyboardIds);
-            }
-            if (update.getCallbackQuery().getData().equals("notification_btn")) {
-                this.sendMessage(chatID, MESSAGE6, BUTTONS6, lastMessageWithKeyboardIds,lastMessageWithButtonsIds);
-                messageReader.put(chatID, true);
-            }
-
-            if (update.getCallbackQuery().getData().equals("info_btn")) {
+            if (callback.equals("info_btn")) {
                 deleteMessage(chatID, lastSettingsMessageIds);
                 deleteMessage(chatID, lastMessageWithKeyboardIds);
                 deleteMessage(chatID, lastMessageWithButtonsIds);
@@ -99,65 +72,52 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
 
                 this.sendInfoMessage(chatID, prettyTextMessage);
             }
+        }
+    }
 
-            String bank = update.getCallbackQuery().getData().equals("bank_btn1") ? "NBU" :
-                    update.getCallbackQuery().getData().equals("bank_btn2") ? "PRIVAT" :
-                            update.getCallbackQuery().getData().equals("bank_btn3") ? "MONO" : null;
-            if (bank != null) {
-                UserSettings userSettings = Storage.getInstance().getUserSettings(chatID);
-                EnumSet<Bank> banks = userSettings.setBank(Bank.valueOf(bank));
-                String[] enumArray = banks.stream()
-                        .map(Bank::getTitle)
-                        .toArray(String[]::new);
+    private void answerPressedSettingsButton(Long chatID, String callback) {
+        if (callback.equals("settings_btn")
+                && lastSettingsMessageIds.get(chatID) == null) {
+            int messageId = this.sendMessage(chatID, MESSAGE2, BUTTONS2);
+            lastSettingsMessageIds.put(chatID, messageId);
+        }
 
-                this.modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), enumArray, BUTTONS4);
-            }
+        if (callback.equals("decimalpoint_btn")) {
+            this.sendMessage(chatID, MESSAGE3, BUTTONS3, lastMessageWithButtonsIds, lastMessageWithKeyboardIds);
+        }
 
-            if (update.getCallbackQuery().getData().startsWith("decimalpoint_btn")
-                    && !update.getCallbackQuery().getData().equals("decimalpoint_btn")) {
-                int selectedValue = switch (update.getCallbackQuery().getData()) {
-                    case "decimalpoint_btn1" -> 2;
-                    case "decimalpoint_btn2" -> 3;
-                    case "decimalpoint_btn3" -> 4;
-                    default -> throw new IllegalStateException("Unexpected value");
-                };
+        if (callback.equals("bank_btn")) {
+            this.sendMessage(chatID, MESSAGE4, BUTTONS4, lastMessageWithButtonsIds, lastMessageWithKeyboardIds);
+        }
 
-                UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+        if (callback.equals("currency_btn")) {
+            this.sendMessage(chatID, MESSAGE5, BUTTONS5, lastMessageWithButtonsIds, lastMessageWithKeyboardIds);
+        }
 
-                if (settings.getRoundNumber() != selectedValue) {
-                    settings.setRoundNumber(selectedValue);
-                    int messageId = update.getCallbackQuery().getMessage().getMessageId();
-                    String[] selectedValues = new String[]{String.valueOf(selectedValue)};
-                    this.modifyButtons(chatID, messageId, selectedValues, BUTTONS3);
-                }
-            }
+        if (callback.equals("notification_btn")) {
+            this.sendMessage(chatID, MESSAGE6, BUTTONS6, lastMessageWithKeyboardIds, lastMessageWithButtonsIds);
+            messageReader.put(chatID, true);
+        }
 
-            if (update.getCallbackQuery().getData().startsWith("currency_btn")
-                    && !update.getCallbackQuery().getData().equals("currency_btn")) {
+        if (callback.startsWith("bank_btn")
+                && !callback.equals("bank_btn")) {
+            this.changeBankSettings(chatID, callback);
+        }
 
-                UserSettings settings = Storage.getInstance().getUserSettings(chatID);
-                Currency selected = getCurrencyFromCallback(update.getCallbackQuery().getData());
-                settings.setCurrency(selected);
-                Storage.getInstance().saveUserSettings(chatID, settings);
+        if (callback.startsWith("decimalpoint_btn")
+                && !callback.equals("decimalpoint_btn")) {
+            this.changeDecimalPointSettings(chatID, callback);
+        }
 
-                EnumSet<Currency> selectedCurrencies = settings.getCurrencies();
-                String[] selectedValues = selectedCurrencies.stream()
-                        .map(Currency::name)
-                        .toArray(String[]::new);
-
-                this.modifyButtons(
-                        chatID,
-                        lastMessageWithButtonsIds.get(chatID),
-                        selectedValues,
-                        BUTTONS5
-                );
-            }
+        if (callback.startsWith("currency_btn")
+                && !callback.equals("currency_btn")) {
+            this.changeCurrencySettings(chatID, callback);
         }
     }
 
     public void sendMessage(Long chatID, String text, Map<String, String> buttons, Map<Long, Integer> lastMessageIds, Map<Long, Integer> lastOtherMessageIds) {
-        if (lastMessageIds.get(chatID)==null
-                || lastOtherMessageIds.get(chatID)!=null){
+        if (lastMessageIds.get(chatID) == null
+                || lastOtherMessageIds.get(chatID) != null) {
             deleteMessage(chatID, lastOtherMessageIds);
             int messageId = this.sendMessage(chatID, text, buttons);
             lastMessageIds.put(chatID, messageId);
@@ -166,19 +126,19 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
         }
     }
 
-        @Override
-        public int sendMessage (Long chatID, String text, Map < String, String > buttons){
-            SendMessage message = TelegramBotUtils.createMessage(chatID, text, buttons);
+    @Override
+    public int sendMessage(Long chatID, String text, Map<String, String> buttons) {
+        SendMessage message = TelegramBotUtils.createMessage(chatID, text, buttons);
 
-            try {
-                return execute(message).getMessageId();
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-            return 0;
+        try {
+            return execute(message).getMessageId();
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
         }
+        return 0;
+    }
 
-    public void modifyMessage(Long chatID, int messageId, String message, Map<String, String> buttons){
+    public void modifyMessage(Long chatID, int messageId, String message, Map<String, String> buttons) {
         EditMessageText editText = TelegramBotUtils.modifyText(chatID, messageId, message, buttons);
 
         try {
@@ -188,15 +148,15 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
         }
     }
 
-    public void modifyButtons(Long chatID, int messageId, String[] values, Map<String, String> buttons){
+    public void modifyButtons(Long chatID, int messageId, String[] values, Map<String, String> buttons) {
         EditMessageReplyMarkup editMarkup = TelegramBotUtils.modifyButtons(chatID, messageId, values, buttons);
-      
-            try {
-                execute(editMarkup);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
+
+        try {
+            execute(editMarkup);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
         }
+    }
 
     @Override
     public void deleteMessage(Long chatID, Map<Long, Integer> lastMessageIds) {
@@ -217,16 +177,74 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
         }
     }
 
-    public int sendInfoMessage(Long chatID, String textMessage){
+    public int sendInfoMessage(Long chatID, String textMessage) {
         return this.sendMessage(chatID, textMessage, BUTTONS1);
     }
 
-    private Currency getCurrencyFromCallback(String callback) {
-        return switch (callback) {
+    private void changeNotificationSettings(Long chatID, String button){
+        if (button.matches("^(1[0-8]|[9])$")) {
+            int selectedHour = Integer.parseInt(button);
+
+            UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+            settings.setNotificationTime(selectedHour);
+            Storage.getInstance().saveUserSettings(chatID, settings);
+        } else if (button.equalsIgnoreCase("Вимкнути повідомлення")) {
+            UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+            settings.setNotificationTime(-1);
+            Storage.getInstance().saveUserSettings(chatID, settings);
+        }
+    }
+
+    private void changeBankSettings(Long chatID, String button){
+        String bank = switch (button) {
+            case "bank_btn1" -> "NBU";
+            case "bank_btn2" -> "PRIVAT";
+            case "bank_btn3" -> "MONO";
+            default -> null;
+        };
+
+        if (bank != null) {
+            UserSettings userSettings = Storage.getInstance().getUserSettings(chatID);
+            EnumSet<Bank> banks = userSettings.setBank(Bank.valueOf(bank));
+            String[] enumArray = banks.stream()
+                    .map(Bank::getTitle)
+                    .toArray(String[]::new);
+
+            this.modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), enumArray, BUTTONS4);
+        }
+    }
+
+    private void changeDecimalPointSettings(Long chatID, String button){
+        int selectedValue = switch (button) {
+            case "decimalpoint_btn1" -> 2;
+            case "decimalpoint_btn2" -> 3;
+            case "decimalpoint_btn3" -> 4;
+            default -> -1;
+        };
+
+        UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+        if (settings.getRoundNumber() != selectedValue) {
+            settings.setRoundNumber(selectedValue);
+            String[] selectedValues = new String[]{String.valueOf(selectedValue)};
+
+            this.modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), selectedValues, BUTTONS3);
+        }
+    }
+
+    private void changeCurrencySettings(Long chatID, String button){
+        UserSettings settings = Storage.getInstance().getUserSettings(chatID);
+        Currency selected = switch (button) {
             case "currency_btn1" -> Currency.USD;
             case "currency_btn2" -> Currency.EUR;
-            default -> throw new IllegalArgumentException("Unknown currency callback: " + callback);
+            default -> null;
         };
+
+        EnumSet<Currency> selectedCurrencies = settings.setCurrency(selected);
+        String[] selectedValues = selectedCurrencies.stream()
+                .map(Currency::name)
+                .toArray(String[]::new);
+
+        this.modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), selectedValues, BUTTONS5);
     }
 }
 
