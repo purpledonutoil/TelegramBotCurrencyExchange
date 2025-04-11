@@ -34,6 +34,7 @@ public class MonoBankConnection extends AbstractBankConnection implements BankCo
                 HttpResponse<String> response = connectWithBank(API_URL);
 
                 if (response==null){
+
                     return Collections.emptyList();
                 }
 
