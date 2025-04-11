@@ -21,7 +21,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static executor.TelegramBotContent.*;
+import static executor.TelegramBotContent.MESSAGE1;
+import static executor.TelegramBotContent.MESSAGE2;
+import static executor.TelegramBotContent.MESSAGE3;
+import static executor.TelegramBotContent.MESSAGE4;
+import static executor.TelegramBotContent.MESSAGE5;
+import static executor.TelegramBotContent.MESSAGE6;
+import static executor.TelegramBotContent.BUTTONS1;
+import static executor.TelegramBotContent.BUTTONS2;
+import static executor.TelegramBotContent.BUTTONS3;
+import static executor.TelegramBotContent.BUTTONS4;
+import static executor.TelegramBotContent.BUTTONS5;
+import static executor.TelegramBotContent.BUTTONS6;
 
 public class TelegramService extends TelegramLongPollingBot implements TelegramBot {
     private static String botName;
@@ -48,18 +59,18 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                 // write new user and default settings to the Storage
                 UserSettings userSettings = new UserSettings();
                 Storage.getInstance().saveUserSettings(chatID, userSettings);
-                this.sendMessage(chatID, MESSAGE1, BUTTONS1);
+                sendMessage(chatID, MESSAGE1, BUTTONS1);
             }
 
             String messageText = update.getMessage().getText();
             if (Boolean.TRUE.equals(messageReader.get(chatID))) {
-                this.changeNotificationSettings(chatID, messageText);
+                changeNotificationSettings(chatID, messageText);
             }
         }
 
         if (update.hasCallbackQuery()) {
             String callback = update.getCallbackQuery().getData();
-            this.answerPressedSettingsButton(chatID, callback);
+            answerPressedSettingsButton(chatID, callback);
 
             if (callback.equals("info_btn")) {
                 deleteMessage(chatID, lastSettingsMessageIds);
@@ -70,48 +81,46 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                 Map<Bank, List<CurrencyRate>> bankRates = BankService.getBankRates(userSettings);
                 String prettyTextMessage = InfoMessage.getPrettyMessage(bankRates, userSettings.getRoundNumber());
 
-                this.sendInfoMessage(chatID, prettyTextMessage);
+                sendInfoMessage(chatID, prettyTextMessage);
             }
         }
     }
 
     private void answerPressedSettingsButton(Long chatID, String callback) {
-        if (callback.equals("settings_btn")
-                && lastSettingsMessageIds.get(chatID) == null) {
-            int messageId = this.sendMessage(chatID, MESSAGE2, BUTTONS2);
-            lastSettingsMessageIds.put(chatID, messageId);
-        }
+        switch (callback) {
+            case "settings_btn":
+                if (lastSettingsMessageIds.get(chatID) == null) {
+                    int messageId = sendMessage(chatID, MESSAGE2, BUTTONS2);
+                    lastSettingsMessageIds.put(chatID, messageId);
+                }
+                break;
 
-        if (callback.equals("decimalpoint_btn")) {
-            this.sendMessage(chatID, MESSAGE3, BUTTONS3, lastMessageWithButtonsIds, lastMessageWithKeyboardIds);
-        }
+            case "decimalpoint_btn":
+                sendMessage(chatID, MESSAGE3, BUTTONS3, lastMessageWithButtonsIds, lastMessageWithKeyboardIds);
+                break;
 
-        if (callback.equals("bank_btn")) {
-            this.sendMessage(chatID, MESSAGE4, BUTTONS4, lastMessageWithButtonsIds, lastMessageWithKeyboardIds);
-        }
+            case "bank_btn":
+                sendMessage(chatID, MESSAGE4, BUTTONS4, lastMessageWithButtonsIds, lastMessageWithKeyboardIds);
+                break;
 
-        if (callback.equals("currency_btn")) {
-            this.sendMessage(chatID, MESSAGE5, BUTTONS5, lastMessageWithButtonsIds, lastMessageWithKeyboardIds);
-        }
+            case "currency_btn":
+                sendMessage(chatID, MESSAGE5, BUTTONS5, lastMessageWithButtonsIds, lastMessageWithKeyboardIds);
+                break;
 
-        if (callback.equals("notification_btn")) {
-            this.sendMessage(chatID, MESSAGE6, BUTTONS6, lastMessageWithKeyboardIds, lastMessageWithButtonsIds);
-            messageReader.put(chatID, true);
-        }
+            case "notification_btn":
+                sendMessage(chatID, MESSAGE6, BUTTONS6, lastMessageWithKeyboardIds, lastMessageWithButtonsIds);
+                messageReader.put(chatID, true);
+                break;
 
-        if (callback.startsWith("bank_btn")
-                && !callback.equals("bank_btn")) {
-            this.changeBankSettings(chatID, callback);
-        }
-
-        if (callback.startsWith("decimalpoint_btn")
-                && !callback.equals("decimalpoint_btn")) {
-            this.changeDecimalPointSettings(chatID, callback);
-        }
-
-        if (callback.startsWith("currency_btn")
-                && !callback.equals("currency_btn")) {
-            this.changeCurrencySettings(chatID, callback);
+            default:
+                if (callback.startsWith("bank_btn")) {
+                    changeBankSettings(chatID, callback);
+                } else if (callback.startsWith("decimalpoint_btn")) {
+                    changeDecimalPointSettings(chatID, callback);
+                } else if (callback.startsWith("currency_btn")) {
+                    changeCurrencySettings(chatID, callback);
+                }
+                break;
         }
     }
 
@@ -119,10 +128,10 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
         if (lastMessageIds.get(chatID) == null
                 || lastOtherMessageIds.get(chatID) != null) {
             deleteMessage(chatID, lastOtherMessageIds);
-            int messageId = this.sendMessage(chatID, text, buttons);
+            int messageId = sendMessage(chatID, text, buttons);
             lastMessageIds.put(chatID, messageId);
         } else {
-            this.modifyMessage(chatID, lastMessageIds.get(chatID), text, buttons);
+            modifyMessage(chatID, lastMessageIds.get(chatID), text, buttons);
         }
     }
 
@@ -178,7 +187,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
     }
 
     public int sendInfoMessage(Long chatID, String textMessage) {
-        return this.sendMessage(chatID, textMessage, BUTTONS1);
+        return sendMessage(chatID, textMessage, BUTTONS1);
     }
 
     private void changeNotificationSettings(Long chatID, String button){
@@ -210,7 +219,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                     .map(Bank::getTitle)
                     .toArray(String[]::new);
 
-            this.modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), enumArray, BUTTONS4);
+            modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), enumArray, BUTTONS4);
         }
     }
 
@@ -227,7 +236,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
             settings.setRoundNumber(selectedValue);
             String[] selectedValues = new String[]{String.valueOf(selectedValue)};
 
-            this.modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), selectedValues, BUTTONS3);
+            modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), selectedValues, BUTTONS3);
         }
     }
 
@@ -244,7 +253,7 @@ public class TelegramService extends TelegramLongPollingBot implements TelegramB
                 .map(Currency::name)
                 .toArray(String[]::new);
 
-        this.modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), selectedValues, BUTTONS5);
+        modifyButtons(chatID, lastMessageWithButtonsIds.get(chatID), selectedValues, BUTTONS5);
     }
 }
 
