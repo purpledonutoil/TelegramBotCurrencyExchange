@@ -9,6 +9,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -18,10 +19,11 @@ public class PrivatBankConnection implements BankConnection {
     private static final String API_URL = "https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5";
     private final ObjectMapper mapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private int retries = 2;
+    private static final int MAX_RETRIES = 2;
 
     @Override
     public List<CurrencyRate> getRates(EnumSet<Currency> currencies) {
+        int retries = MAX_RETRIES;
         List<CurrencyRate> result = new ArrayList<>();
 
         while (retries > 0) {
@@ -34,7 +36,7 @@ public class PrivatBankConnection implements BankConnection {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() != 200) {
-                    return null;
+                    return Collections.emptyList();
                 }
 
                 JsonNode root = mapper.readTree(response.body());
@@ -51,6 +53,9 @@ public class PrivatBankConnection implements BankConnection {
 
                             CurrencyRate currencyRate = new CurrencyRate(currency, buy, sell);
                             result.add(currencyRate);
+                            if (result.size() == currencies.size()) {
+                                break;
+                            }
                         }
                     } catch (IllegalArgumentException e) {
 
@@ -70,7 +75,7 @@ public class PrivatBankConnection implements BankConnection {
         }
 
         if (retries == 0) {
-            return null;
+            return Collections.emptyList();
         }
 
         return result;

@@ -11,6 +11,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 public class NBUConnection implements BankConnection {
@@ -18,10 +19,11 @@ public class NBUConnection implements BankConnection {
     private static final String API_URL = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json";
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private int retries = 2;
+    private static final int MAX_RETRIES = 2;
 
     @Override
     public List<CurrencyRate> getRates(EnumSet<Currency> currencies) {
+        int retries = MAX_RETRIES;
         List<CurrencyRate> rates = new ArrayList<>();
 
         while (retries > 0) {
@@ -34,7 +36,7 @@ public class NBUConnection implements BankConnection {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() != 200) {
-                    return null;
+                    return Collections.emptyList();
                 }
 
                 JsonNode root = objectMapper.readTree(response.body());
@@ -49,6 +51,9 @@ public class NBUConnection implements BankConnection {
                             float rate = (float) rateNode.get("rate").asDouble();
 
                             rates.add(new CurrencyRate(currency, rate, rate));
+                            if (rates.size() == currencies.size()) {
+                                break;
+                            }
                         }
                     } catch (IllegalArgumentException ignored) {
 
@@ -68,7 +73,7 @@ public class NBUConnection implements BankConnection {
         }
 
         if (retries == 0) {
-            return null;
+            return Collections.emptyList();
         }
 
         return rates;
