@@ -3,9 +3,8 @@ plugins {
 }
 
 application {
-    mainClass = 'org.telegrambot.executor.TelegramBot' // Replace with your actual package name
+    mainClass = 'AppTelegramBot'
 }
-
 
 compileJava {options.encoding = "UTF-8"}
 
@@ -20,11 +19,23 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     implementation group: 'org.telegram', name: 'telegrambots', version: '6.9.7.1'
-    implementation 'ch.qos.logback:logback-classic:1.4.14'
+    implementation 'ch.qos.logback:logback-classic:1.5.18'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.12.1'
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
 }
 
 test {
     useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "AppTelegramBot"
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
